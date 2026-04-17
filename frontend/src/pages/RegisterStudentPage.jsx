@@ -67,17 +67,25 @@ export default function RegisterStudentPage() {
               </div>
 
               <div className="form-row">
-                {(form.course === 'B.Tech' || form.course === 'Diploma') && (
+                {(form.course === 'B.Tech' || form.course === 'Diploma' || form.course === 'M.Tech' || form.course === 'MCA') && (
                   <div className="form-group">
                     <label className="form-label" htmlFor="reg-branch">Branch</label>
                     <select id="reg-branch" className="form-input form-select"
                       value={form.branch} onChange={(e) => setForm({ ...form, branch: e.target.value })} required>
                       <option value="">Select Branch</option>
-                      {form.course === 'B.Tech' 
+                      {form.course === 'B.Tech'
                         ? ['CS','IT','EXTC','Electrical','Electronics','MECH','PROD','TEXTILE','Civil'].map(b =>
                             <option key={b} value={b}>{b}</option>
                           )
-                        : ['production','chemsa','electrical','electronics','textile','mechanical'].map(b =>
+                        : form.course === 'Diploma'
+                        ? ['production','chemsa','electrical','electronics','textile','mechanical'].map(b =>
+                            <option key={b} value={b}>{b}</option>
+                          )
+                        : form.course === 'M.Tech'
+                        ? ['CSE','ECE','Mechanical','Electrical','Civil','VLSI','Power Electronics'].map(b =>
+                            <option key={b} value={b}>{b}</option>
+                          )
+                        : ['MCA'].map(b =>
                             <option key={b} value={b}>{b}</option>
                           )
                       }

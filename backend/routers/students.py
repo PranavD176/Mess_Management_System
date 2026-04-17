@@ -31,8 +31,8 @@ def register_student(
         raise HTTPException(status_code=400, detail=f"Invalid course. Must be one of: {', '.join(valid_courses)}")
     
     # Validate branch requirement
-    if body.course in ['B.Tech', 'Diploma'] and not body.branch:
-        raise HTTPException(status_code=400, detail="Branch is required for B.Tech and Diploma courses")
+    if body.course in ['B.Tech', 'Diploma', 'M.Tech', 'MCA'] and not body.branch:
+        raise HTTPException(status_code=400, detail="Branch is required for B.Tech, M.Tech, MCA and Diploma courses")
     
     # Validate year range based on course
     year_limits = {
