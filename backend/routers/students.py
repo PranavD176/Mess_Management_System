@@ -15,7 +15,8 @@ router = APIRouter()
 class RegisterStudentRequest(BaseModel):
     name: str
     roll_no: str
-    branch: str
+    course: str
+    branch: str = None
     year: int
 
 
@@ -24,6 +25,30 @@ def register_student(
     body: RegisterStudentRequest,
     _: dict = Depends(require_admin),
 ):
+    # Validate course
+    valid_courses = ['B.Tech', 'M.Tech', 'MCA', 'Diploma']
+    if body.course not in valid_courses:
+        raise HTTPException(status_code=400, detail=f"Invalid course. Must be one of: {', '.join(valid_courses)}")
+    
+    # Validate branch requirement
+    if body.course in ['B.Tech', 'Diploma'] and not body.branch:
+        raise HTTPException(status_code=400, detail="Branch is required for B.Tech and Diploma courses")
+    
+    # Validate year range based on course
+    year_limits = {
+        'B.Tech': (1, 4),
+        'M.Tech': (1, 2), 
+        'MCA': (1, 2),
+        'Diploma': (1, 3)
+    }
+    
+    min_year, max_year = year_limits[body.course]
+    if not (min_year <= body.year <= max_year):
+        raise HTTPException(
+            status_code=400, 
+            detail=f"Year must be between {min_year} and {max_year} for {body.course}"
+        )
+    
     with get_cursor() as cur:
         cur.execute("SELECT id FROM students WHERE roll_no = %s", (body.roll_no,))
         if cur.fetchone():
@@ -31,11 +56,11 @@ def register_student(
 
         cur.execute(
             """
-            INSERT INTO students (name, roll_no, branch, year)
-            VALUES (%s, %s, %s, %s)
-            RETURNING id, name, roll_no, branch, year, created_at
+            INSERT INTO students (name, roll_no, course, branch, year)
+            VALUES (%s, %s, %s, %s, %s)
+            RETURNING id, name, roll_no, course, branch, year, created_at
             """,
-            (body.name, body.roll_no, body.branch, body.year),
+            (body.name, body.roll_no, body.course, body.branch, body.year),
         )
         student = cur.fetchone()
 
@@ -63,7 +88,7 @@ def list_students(_: dict = Depends(require_admin)):
         cur.execute(
             """
             SELECT
-                s.id, s.name, s.roll_no, s.branch, s.year, s.created_at,
+                s.id, s.name, s.roll_no, s.course, s.branch, s.year, s.created_at,
                 bp.balance,
                 bp.plan_end,
                 bp.is_active AS has_active_plan

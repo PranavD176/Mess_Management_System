@@ -68,7 +68,7 @@ export default function StudentDetailPage() {
               ← All Students
             </button>
             <h1 className="page-title">👤 {student.name}</h1>
-            <p className="page-subtitle">{student.roll_no} · {student.branch} · Year {student.year}</p>
+            <p className="page-subtitle">{student.roll_no} · {student.course} {student.branch && `· ${student.branch}`} · Year {student.year}</p>
           </div>
           <button className="btn btn-primary btn-sm" onClick={() => navigate(`/students/${id}/plan`)}>
             {plan ? '🔄 Renew Plan' : '💳 Create Plan'}

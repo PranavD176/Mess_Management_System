@@ -15,6 +15,7 @@ export default function StudentListPage() {
   const filtered = students.filter(s =>
     s.name.toLowerCase().includes(search.toLowerCase()) ||
     s.roll_no.toLowerCase().includes(search.toLowerCase()) ||
+    s.course?.toLowerCase().includes(search.toLowerCase()) ||
     s.branch?.toLowerCase().includes(search.toLowerCase())
   )
 
@@ -82,7 +83,7 @@ export default function StudentListPage() {
           <div style={{ marginBottom: 16 }}>
             <input
               className="form-input"
-              placeholder="🔍 Search by name, roll no, or branch…"
+              placeholder="🔍 Search by name, roll no, course, or branch…"
               value={search}
               onChange={e => setSearch(e.target.value)}
               style={{ maxWidth: 380 }}
@@ -104,6 +105,7 @@ export default function StudentListPage() {
                     <th>ID</th>
                     <th>Name</th>
                     <th>Roll No</th>
+                    <th>Course</th>
                     <th>Branch</th>
                     <th>Year</th>
                     <th>Balance</th>
@@ -118,7 +120,8 @@ export default function StudentListPage() {
                       <td><span className="text-muted text-sm">#{s.id}</span></td>
                       <td><strong style={{ color: 'var(--text-primary)' }}>{s.name}</strong></td>
                       <td><span className="badge badge-muted">{s.roll_no}</span></td>
-                      <td>{s.branch}</td>
+                      <td><span className="badge badge-primary">{s.course}</span></td>
+                      <td>{s.branch || '-'}</td>
                       <td>Year {s.year}</td>
                       <td>
                         <span style={{ color: balanceColor(s.balance), fontWeight: 700 }}>

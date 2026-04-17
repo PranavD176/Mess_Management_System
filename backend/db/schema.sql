@@ -8,8 +8,14 @@ CREATE TABLE IF NOT EXISTS students (
     id         SERIAL PRIMARY KEY,
     name       VARCHAR(100) NOT NULL,
     roll_no    VARCHAR(50)  UNIQUE NOT NULL,
-    branch     VARCHAR(50)  NOT NULL,
-    year       INT          NOT NULL CHECK (year BETWEEN 1 AND 5),
+    course     VARCHAR(20)  NOT NULL CHECK (course IN ('B.Tech', 'M.Tech', 'MCA', 'Diploma')),
+    branch     VARCHAR(50),
+    year       INT          NOT NULL CHECK (
+        (course = 'B.Tech' AND year BETWEEN 1 AND 4) OR
+        (course = 'M.Tech' AND year BETWEEN 1 AND 2) OR
+        (course = 'MCA' AND year BETWEEN 1 AND 2) OR
+        (course = 'Diploma' AND year BETWEEN 1 AND 3)
+    ),
     created_at TIMESTAMPTZ  DEFAULT NOW()
 );
 

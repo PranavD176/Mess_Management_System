@@ -5,7 +5,7 @@ import { registerStudent } from '../api'
 
 export default function RegisterStudentPage() {
   const navigate = useNavigate()
-  const [form, setForm] = useState({ name: '', roll_no: '', branch: '', year: '1' })
+  const [form, setForm] = useState({ name: '', roll_no: '', course: '', branch: '', year: '1' })
   const [loading, setLoading] = useState(false)
   const [registered, setRegistered] = useState(null)
 
@@ -25,7 +25,7 @@ export default function RegisterStudentPage() {
 
   const handleReset = () => {
     setRegistered(null)
-    setForm({ name: '', roll_no: '', branch: '', year: '1' })
+    setForm({ name: '', roll_no: '', course: '', branch: '', year: '1' })
   }
 
   return (
@@ -54,23 +54,47 @@ export default function RegisterStudentPage() {
                   value={form.roll_no} onChange={(e) => setForm({ ...form, roll_no: e.target.value })} required />
               </div>
 
+              <div className="form-group">
+                <label className="form-label" htmlFor="reg-course">Course</label>
+                <select id="reg-course" className="form-input form-select"
+                  value={form.course} onChange={(e) => setForm({ ...form, course: e.target.value, branch: '' })} required>
+                  <option value="">Select Course</option>
+                  <option value="B.Tech">B.Tech</option>
+                  <option value="M.Tech">M.Tech</option>
+                  <option value="MCA">MCA</option>
+                  <option value="Diploma">Diploma</option>
+                </select>
+              </div>
+
               <div className="form-row">
-                <div className="form-group">
-                  <label className="form-label" htmlFor="reg-branch">Branch</label>
-                  <select id="reg-branch" className="form-input form-select"
-                    value={form.branch} onChange={(e) => setForm({ ...form, branch: e.target.value })} required>
-                    <option value="">Select Branch</option>
-                    {['CS','IT','EXTC','Electrical','Electronics','MECH','PROD','TEXTILE','Civil'].map(b =>
-                      <option key={b} value={b}>{b}</option>
-                    )}
-                  </select>
-                </div>
+                {(form.course === 'B.Tech' || form.course === 'Diploma') && (
+                  <div className="form-group">
+                    <label className="form-label" htmlFor="reg-branch">Branch</label>
+                    <select id="reg-branch" className="form-input form-select"
+                      value={form.branch} onChange={(e) => setForm({ ...form, branch: e.target.value })} required>
+                      <option value="">Select Branch</option>
+                      {form.course === 'B.Tech' 
+                        ? ['CS','IT','EXTC','Electrical','Electronics','MECH','PROD','TEXTILE','Civil'].map(b =>
+                            <option key={b} value={b}>{b}</option>
+                          )
+                        : ['production','chemsa','electrical','electronics','textile','mechanical'].map(b =>
+                            <option key={b} value={b}>{b}</option>
+                          )
+                      }
+                    </select>
+                  </div>
+                )}
 
                 <div className="form-group">
                   <label className="form-label" htmlFor="reg-year">Year</label>
                   <select id="reg-year" className="form-input form-select"
                     value={form.year} onChange={(e) => setForm({ ...form, year: e.target.value })}>
-                    {[1,2,3,4].map(y => <option key={y} value={y}>Year {y}</option>)}
+                    {form.course === 'B.Tech' 
+                      ? [1,2,3,4].map(y => <option key={y} value={y}>Year {y}</option>)
+                      : form.course === 'Diploma'
+                      ? [1,2,3].map(y => <option key={y} value={y}>Year {y}</option>)
+                      : [1,2].map(y => <option key={y} value={y}>Year {y}</option>)
+                    }
                   </select>
                 </div>
               </div>
@@ -97,7 +121,7 @@ export default function RegisterStudentPage() {
                   <div><strong>Name:</strong> {registered.name}</div>
                   <div><strong>Roll No:</strong> {registered.roll_no}</div>
                   <div><strong>Student ID:</strong> <span className="text-accent font-bold">{registered.id}</span></div>
-                  <div><strong>Branch:</strong> {registered.branch} · Year {registered.year}</div>
+                  <div><strong>Course:</strong> {registered.course} {registered.branch && `· ${registered.branch}`} · Year {registered.year}</div>
                   <div style={{ marginTop: 6, paddingTop: 6, borderTop: '1px solid rgba(16,185,129,0.2)' }}>
                     <strong>Initial Balance:</strong> <span className="text-muted">₹0.00</span>
                     <span style={{ fontSize: 11, color: 'var(--text-muted)', marginLeft: 8 }}>(postpaid — scan ready)</span>
