@@ -67,6 +67,9 @@ cd frontend
 # Install dependencies (already done if you ran npm install)
 npm install
 
+#if error then run:
+npm install --legacy-peer-deps
+
 # Start the dev server
 npm run dev
 ```
