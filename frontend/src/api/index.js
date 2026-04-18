@@ -30,6 +30,9 @@ export const login = (username, password) =>
 export const registerStudent = (data) =>
   api.post('/students', data).then((r) => r.data.data)
 
+export const registerStudentAdmin = (data) =>
+  api.post('/students/admin', data).then((r) => r.data.data)
+
 export const listStudents = () =>
   api.get('/students').then((r) => r.data.data)
 
@@ -41,6 +44,18 @@ export const getStudentFull = (id) =>
 
 export const getStudentQR = (id) =>
   api.get(`/students/${id}/qr`).then((r) => r.data.data)
+
+export const getCurrentStudent = () =>
+  api.get('/students/me').then((r) => r.data.data)
+
+export const getPendingStudents = () =>
+  api.get('/students/pending').then((r) => r.data)
+
+export const approveStudent = (studentId) =>
+  api.post(`/students/${studentId}/approve`).then((r) => r.data)
+
+export const rejectStudent = (studentId) =>
+  api.post(`/students/${studentId}/reject`).then((r) => r.data)
 
 // ── Meals ─────────────────────────────────────────────────────
 export const scanMeal = (student_id) =>

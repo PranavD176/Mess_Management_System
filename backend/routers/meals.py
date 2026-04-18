@@ -148,14 +148,22 @@ def daily_report(
     with get_cursor() as cur:
         cur.execute(
             """
-            SELECT meal_type, COUNT(*) AS count, SUM(amount_deducted) AS total_amount
-            FROM meal_entry
-            WHERE entry_date = %s
-            GROUP BY meal_type ORDER BY meal_type
+            SELECT 
+                s.id AS student_id,
+                s.name AS student_name,
+                s.roll_no,
+                COUNT(me.id) AS scan_count,
+                SUM(me.amount_deducted) AS total_amount,
+                (COUNT(me.id)::float / 3) AS avg_meals_divided_by_3
+            FROM students s
+            LEFT JOIN meal_entry me ON s.id = me.student_id AND me.entry_date = %s
+            WHERE me.id IS NOT NULL
+            GROUP BY s.id, s.name, s.roll_no
+            ORDER BY total_amount DESC
             """,
             (date,),
         )
-        by_meal = cur.fetchall()
+        by_student = cur.fetchall()
 
         cur.execute(
             "SELECT COUNT(*) AS total_entries, SUM(amount_deducted) AS grand_total FROM meal_entry WHERE entry_date = %s",
@@ -167,7 +175,7 @@ def daily_report(
         "success": True,
         "data": {
             "date": date,
-            "by_meal": [dict(r) for r in by_meal],
+            "by_student": [dict(r) for r in by_student],
             "total_entries": totals["total_entries"],
             "grand_total": float(totals["grand_total"] or 0),
         },

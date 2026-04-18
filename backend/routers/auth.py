@@ -23,8 +23,18 @@ def login(body: LoginRequest):
         )
         user = cur.fetchone()
 
-    if not user or not verify_password(body.password, user["password"]):
-        raise HTTPException(status_code=401, detail="Invalid username or password")
+        if not user or not verify_password(body.password, user["password"]):
+            raise HTTPException(status_code=401, detail="Invalid username or password")
+
+        # Check approval status for students
+        if user["role"] == "student":
+            cur.execute(
+                "SELECT is_approved FROM students WHERE roll_no = %s",
+                (user["username"],)
+            )
+            student = cur.fetchone()
+            if not student or not student["is_approved"]:
+                raise HTTPException(status_code=403, detail="Your registration is pending approval. Please contact admin.")
 
     token = create_access_token(
         {"sub": str(user["id"]), "role": user["role"], "username": user["username"]}

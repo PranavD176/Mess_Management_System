@@ -3,6 +3,9 @@
 .env.*
 !.env.example
 
+# Credentials (plain-text passwords — never commit!)
+backend/users_credentials.json
+
 # Python / Backend
 backend/venv/
 backend/__pycache__/

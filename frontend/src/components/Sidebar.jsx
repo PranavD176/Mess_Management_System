@@ -5,6 +5,7 @@ const adminLinks = [
   { to: '/scan',             icon: '📷', label: 'Scan QR Code' },
   { to: '/students',         icon: '👥', label: 'Students' },
   { to: '/students/new',     icon: '➕', label: 'Register Student' },
+  { to: '/approve-registration', icon: '✔️', label: 'Approve Registration' },
   { to: '/adjust',           icon: '⚖️',  label: 'Manual Adjustment' },
   { to: '/reports/daily',    icon: '📅', label: 'Daily Report' },
   { to: '/reports/monthly',  icon: '📊', label: 'Monthly Report' },
@@ -15,10 +16,14 @@ const staffLinks = [
   { to: '/scan', icon: '📷', label: 'Scan QR Code' },
 ]
 
+const studentLinks = [
+  { to: '/dashboard', icon: '�', label: 'My Dashboard' },
+]
+
 export default function Sidebar() {
   const { role, username, logout } = useAuth()
   const navigate = useNavigate()
-  const links = role === 'admin' ? adminLinks : staffLinks
+  const links = role === 'admin' ? adminLinks : role === 'staff' ? staffLinks : studentLinks
 
   const handleLogout = () => { logout(); navigate('/login') }
 

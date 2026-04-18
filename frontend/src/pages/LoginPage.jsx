@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import { useAuth } from '../context/AuthContext'
 
@@ -17,7 +17,9 @@ export default function LoginPage() {
     try {
       const data = await login(form.username, form.password)
       toast.success(`Welcome, ${data.username}!`)
-      navigate('/scan')
+      // Redirect based on user role
+      const redirectPath = data.role === 'student' ? '/dashboard' : '/scan'
+      navigate(redirectPath)
     } catch (err) {
       setError(err.response?.data?.detail || 'Login failed. Check credentials.')
     } finally {
@@ -43,7 +45,7 @@ export default function LoginPage() {
               id="username"
               className="form-input"
               type="text"
-              placeholder="admin / staff"
+              placeholder="roll number / admin / staff"
               value={form.username}
               onChange={(e) => setForm({ ...form, username: e.target.value })}
               required
@@ -73,6 +75,12 @@ export default function LoginPage() {
             {loading ? '⏳ Signing in…' : '🔑 Sign In'}
           </button>
         </form>
+
+        <div style={{ textAlign: 'center', marginTop: 24 }}>
+          <Link to="/register" style={{ color: 'var(--primary)', textDecoration: 'none', fontSize: 14, fontWeight: 500 }}>
+            Student? Register here
+          </Link>
+        </div>
 
         <p style={{ textAlign: 'center', fontSize: 12, color: 'var(--text-muted)', marginTop: 24 }}>
           College Mess Management · Secure Login

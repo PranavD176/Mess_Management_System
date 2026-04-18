@@ -2,12 +2,6 @@ import { useState } from 'react'
 import toast from 'react-hot-toast'
 import { getDailyReport } from '../api'
 
-const MEAL_DATA = {
-  breakfast: { icon: '🌅', color: 'var(--warning)' },
-  lunch:     { icon: '☀️', color: 'var(--accent)' },
-  dinner:    { icon: '🌙', color: '#8b5cf6' },
-}
-
 export default function DailyReportPage() {
   const today = new Date().toISOString().slice(0, 10)
   const [date, setDate] = useState(today)
@@ -60,6 +54,12 @@ export default function DailyReportPage() {
             {/* Summary stats */}
             <div className="stat-grid mb-6" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))' }}>
               <div className="stat-card">
+                <div className="stat-icon">👥</div>
+                <div className="stat-label">Students Scanned</div>
+                <div className="stat-value">{report.by_student?.length || 0}</div>
+                <div className="stat-sub">Unique students</div>
+              </div>
+              <div className="stat-card">
                 <div className="stat-icon">🍽️</div>
                 <div className="stat-label">Total Meals</div>
                 <div className="stat-value">{report.total_entries || 0}</div>
@@ -71,74 +71,54 @@ export default function DailyReportPage() {
                 <div className="stat-value" style={{ fontSize: 22 }}>₹{(report.grand_total || 0).toFixed(0)}</div>
                 <div className="stat-sub">Revenue collected</div>
               </div>
-              {['breakfast', 'lunch', 'dinner'].map(m => {
-                const row = report.by_meal?.find(r => r.meal_type === m)
-                return (
-                  <div key={m} className="stat-card">
-                    <div className="stat-icon">{MEAL_DATA[m].icon}</div>
-                    <div className="stat-label">{m.charAt(0).toUpperCase() + m.slice(1)}</div>
-                    <div className="stat-value" style={{ color: MEAL_DATA[m].color }}>{row?.count || 0}</div>
-                    <div className="stat-sub">₹{parseFloat(row?.total_amount || 0).toFixed(0)} collected</div>
-                  </div>
-                )
-              })}
+              <div className="stat-card">
+                <div className="stat-icon">📊</div>
+                <div className="stat-label">Avg per Student</div>
+                <div className="stat-value">
+                  ₹{report.by_student?.length ? ((report.grand_total || 0) / report.by_student.length).toFixed(0) : 0}
+                </div>
+                <div className="stat-sub">Average amount</div>
+              </div>
             </div>
 
-            {/* Breakdown table */}
+            {/* Student breakdown table */}
             <div className="card">
-              <div className="card-title">🍽️ Meal-wise Breakdown</div>
-              {!report.by_meal?.length ? (
+              <div className="card-title">👥 Student-wise Breakdown</div>
+              {!report.by_student?.length ? (
                 <div className="empty-state">
                   <div className="empty-state-icon">😴</div>
-                  <p>No meals recorded on {date}</p>
+                  <p>No students scanned on {date}</p>
                 </div>
               ) : (
                 <div className="table-wrapper">
                   <table>
                     <thead>
                       <tr>
-                        <th>Meal Type</th>
-                        <th>Students Attended</th>
-                        <th>Rate per Meal</th>
-                        <th>Total Deducted</th>
-                        <th>% of Day</th>
+                        <th>Student Name</th>
+                        <th>Roll No</th>
+                        <th>No of Scans in Day</th>
+                        <th>AVG Meals/3</th>
+                        <th>Total Amount</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {report.by_meal.map(row => {
-                        const meta = MEAL_DATA[row.meal_type] || {}
-                        const pct = report.total_entries ? ((row.count / report.total_entries) * 100).toFixed(1) : 0
-                        const rate = parseFloat(row.total_amount) / row.count
-                        return (
-                          <tr key={row.meal_type}>
-                            <td>
-                              <span>{meta.icon} </span>
-                              <span className="badge badge-info" style={{ color: meta.color }}>
-                                {row.meal_type}
-                              </span>
-                            </td>
-                            <td><strong style={{ color: 'var(--text-primary)' }}>{row.count}</strong></td>
-                            <td>₹{rate.toFixed(2)}</td>
-                            <td><strong style={{ color: 'var(--success)' }}>₹{parseFloat(row.total_amount).toFixed(2)}</strong></td>
-                            <td>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                                <div style={{ flex: 1, background: 'var(--border)', borderRadius: 4, height: 6, overflow: 'hidden' }}>
-                                  <div style={{ width: `${pct}%`, background: meta.color, height: '100%', borderRadius: 4 }} />
-                                </div>
-                                <span className="text-sm">{pct}%</span>
-                              </div>
-                            </td>
-                          </tr>
-                        )
-                      })}
+                      {report.by_student.map(row => (
+                        <tr key={row.student_id}>
+                          <td><strong style={{ color: 'var(--text-primary)' }}>{row.student_name}</strong></td>
+                          <td><span className="badge badge-info">{row.roll_no}</span></td>
+                          <td><strong>{row.scan_count}</strong></td>
+                          <td>{row.avg_meals_divided_by_3?.toFixed(2) || '0.00'}</td>
+                          <td><strong style={{ color: 'var(--success)' }}>₹{parseFloat(row.total_amount || 0).toFixed(2)}</strong></td>
+                        </tr>
+                      ))}
                     </tbody>
                     <tfoot>
                       <tr>
                         <td><strong style={{ color: 'var(--text-primary)' }}>Total</strong></td>
+                        <td><strong>{report.by_student?.length || 0} Students</strong></td>
                         <td><strong>{report.total_entries}</strong></td>
                         <td>—</td>
                         <td><strong style={{ color: 'var(--success)', fontSize: 15 }}>₹{(report.grand_total || 0).toFixed(2)}</strong></td>
-                        <td>100%</td>
                       </tr>
                     </tfoot>
                   </table>

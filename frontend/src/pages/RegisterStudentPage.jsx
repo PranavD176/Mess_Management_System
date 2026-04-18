@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
-import { registerStudent } from '../api'
+import { registerStudentAdmin } from '../api'
 
 export default function RegisterStudentPage() {
   const navigate = useNavigate()
@@ -13,7 +13,7 @@ export default function RegisterStudentPage() {
     e.preventDefault()
     setLoading(true)
     try {
-      const data = await registerStudent({ ...form, year: parseInt(form.year) })
+      const data = await registerStudentAdmin({ ...form, year: parseInt(form.year) })
       setRegistered(data)
       toast.success(`${data.name} registered! ID: ${data.id}`)
     } catch (err) {
