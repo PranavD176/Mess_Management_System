@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
-import { getStudent, createBillingPlan, renewBillingPlan } from '../api'
+import { getStudent, createBillingPlan, renewBillingPlan, getCurrentStudent } from '../api'
 
 export default function CreatePlanPage() {
   const { id } = useParams()
@@ -22,16 +22,31 @@ export default function CreatePlanPage() {
   const [renewal, setRenewal] = useState(null)
 
   useEffect(() => {
-    getStudent(id)
-      .then(s => {
-        setStudent(s)
-        if (s.active_plan) {
-          setRenewal(s.active_plan)
-          setForm(f => ({ ...f, plan_start: s.active_plan.plan_end }))
-        }
-      })
-      .catch(console.error)
-      .finally(() => setLoading(false))
+    if (id) {
+      // Admin accessing student's plan
+      getStudent(id)
+        .then(s => {
+          setStudent(s)
+          if (s.active_plan) {
+            setRenewal(s.active_plan)
+            setForm(f => ({ ...f, plan_start: s.active_plan.plan_end }))
+          }
+        })
+        .catch(console.error)
+        .finally(() => setLoading(false))
+    } else {
+      // Student accessing their own plan
+      getCurrentStudent()
+        .then(data => {
+          setStudent(data.student)
+          if (data.student.active_plan) {
+            setRenewal(data.student.active_plan)
+            setForm(f => ({ ...f, plan_start: data.student.active_plan.plan_end }))
+          }
+        })
+        .catch(console.error)
+        .finally(() => setLoading(false))
+    }
   }, [id])
 
   const isRenewal = !!renewal
@@ -54,7 +69,7 @@ export default function CreatePlanPage() {
         )
       } else {
         await createBillingPlan({
-          student_id: parseInt(id),
+          student_id: student.id, // Use student object's ID when no URL parameter
           installment_amount: parseFloat(form.installment_amount),
           plan_start: form.plan_start,
           plan_end: form.plan_end,
@@ -62,7 +77,12 @@ export default function CreatePlanPage() {
         })
         toast.success('Billing plan created!')
       }
-      navigate(`/students/${id}`)
+      // Navigate back based on context
+      if (id) {
+        navigate(`/students/${id}`) // Admin goes back to student detail
+      } else {
+        navigate('/dashboard') // Student goes back to dashboard
+      }
     } catch (err) {
       toast.error(err.response?.data?.detail || 'Failed to save plan')
     } finally {
@@ -78,10 +98,10 @@ export default function CreatePlanPage() {
   return (
     <>
       <div className="page-header">
-        <button className="btn btn-ghost btn-sm" style={{ marginBottom: 8 }} onClick={() => navigate(`/students/${id}`)}>
-          ← Back to Student
+        <button className="btn btn-ghost btn-sm" style={{ marginBottom: 8 }} onClick={() => id ? navigate(`/students/${id}`) : navigate('/dashboard')}>
+          {id ? 'Back to Student' : 'Back to Dashboard'}
         </button>
-        <h1 className="page-title">{isRenewal ? '🔄 Renew Billing Plan' : '💳 Create Billing Plan'}</h1>
+        <h1 className="page-title">{isRenewal ? 'Renew Billing Plan' : 'Create Billing Plan'}</h1>
         <p className="page-subtitle">
           {student?.name} · {student?.roll_no}
           {isRenewal && <span className="badge badge-info" style={{ marginLeft: 8 }}>Renewal</span>}

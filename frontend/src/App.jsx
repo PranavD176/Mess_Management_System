@@ -33,6 +33,7 @@ function AppShell() {
         <Routes>
           <Route path="/scan"            element={<ProtectedRoute><ScanPage /></ProtectedRoute>} />
           <Route path="/dashboard"       element={<ProtectedRoute><StudentDashboardPage /></ProtectedRoute>} />
+          <Route path="/renew-plan"      element={<ProtectedRoute><CreatePlanPage /></ProtectedRoute>} />
           <Route path="/students"        element={<ProtectedRoute requireAdmin><StudentListPage /></ProtectedRoute>} />
           <Route path="/students/new"    element={<ProtectedRoute requireAdmin><RegisterStudentPage /></ProtectedRoute>} />
           <Route path="/students/:id"    element={<ProtectedRoute requireAdmin><StudentDetailPage /></ProtectedRoute>} />
