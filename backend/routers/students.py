@@ -251,7 +251,7 @@ def get_student_full(student_id: int, _: dict = Depends(require_admin)):
 
         # All billing plans
         cur.execute(
-            "SELECT * FROM billing_plans WHERE student_id = %s ORDER BY created_at DESC",
+            "SELECT * FROM billing_plans WHERE student_id = %s AND is_active = TRUE ORDER BY created_at DESC",
             (student_id,),
         )
         plans = cur.fetchall()
@@ -329,7 +329,7 @@ def get_current_student_data(current_user: dict = Depends(get_current_user)):
 
         # All billing plans
         cur.execute(
-            "SELECT * FROM billing_plans WHERE student_id = %s ORDER BY created_at DESC",
+            "SELECT * FROM billing_plans WHERE student_id = %s AND is_active = TRUE ORDER BY created_at DESC",
             (student_id,),
         )
         plans = cur.fetchall()
@@ -414,16 +414,8 @@ def approve_student_registration(student_id: int, _: dict = Depends(require_admi
             (student_id,)
         )
         
-        # Create billing plan
-        today = date.today()
-        plan_end = today + timedelta(days=365)
-        create_plan(
-            student_id=student_id,
-            installment_amount=0,
-            plan_start=str(today),
-            plan_end=str(plan_end),
-            low_balance_threshold=500,
-        )
+        # Don't auto-create billing plan on approval
+        # Plans should be created explicitly when payment is received
         
         # Create user credentials
         cur.execute(

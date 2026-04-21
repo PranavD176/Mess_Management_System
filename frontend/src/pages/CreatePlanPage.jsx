@@ -29,7 +29,7 @@ export default function CreatePlanPage() {
           setStudent(s)
           if (s.active_plan) {
             setRenewal(s.active_plan)
-            setForm(f => ({ ...f, plan_start: s.active_plan.plan_end }))
+            setForm(f => ({ ...f, plan_start: today }))
           }
         })
         .catch(console.error)
@@ -41,7 +41,7 @@ export default function CreatePlanPage() {
           setStudent(data.student)
           if (data.student.active_plan) {
             setRenewal(data.student.active_plan)
-            setForm(f => ({ ...f, plan_start: data.student.active_plan.plan_end }))
+            setForm(f => ({ ...f, plan_start: today }))
           }
         })
         .catch(console.error)
