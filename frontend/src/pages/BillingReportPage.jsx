@@ -28,10 +28,10 @@ export default function BillingReportPage() {
   const exhausted = report.filter(r => r.balance != null && r.balance <= 0)
   const low       = report.filter(r => r.balance != null && r.balance > 0 && r.balance < (r.low_balance_threshold || 500))
   const expired   = report.filter(r => r.plan_end && new Date(r.plan_end) < new Date())
-  const noplan    = report.filter(r => !r.is_active)
+  const noplan    = report.filter(r => r.is_active == null || !r.is_active)
 
   const rowClass = (r) => {
-    if (!r.is_active) return ''
+    if (r.is_active == null || !r.is_active) return ''
     if (r.balance != null && r.balance <= 0) return 'row-danger'
     if (r.balance != null && r.balance < (r.low_balance_threshold || 500)) return 'row-warning'
     if (r.plan_end && new Date(r.plan_end) < new Date()) return 'row-danger'
@@ -39,6 +39,7 @@ export default function BillingReportPage() {
   }
 
   const balColor = (r) => {
+    if (r.is_active == null || !r.is_active) return 'var(--text-muted)'
     if (r.balance == null) return 'var(--text-muted)'
     if (r.balance <= 0) return 'var(--danger)'
     if (r.balance < (r.low_balance_threshold || 500)) return 'var(--warning)'

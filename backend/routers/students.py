@@ -153,16 +153,8 @@ def register_student_admin(
         )
         student = cur.fetchone()
 
-    # Auto-create a billing plan
-    today = date.today()
-    plan_end = today + timedelta(days=365)
-    create_plan(
-        student_id=student["id"],
-        installment_amount=0,
-        plan_start=str(today),
-        plan_end=str(plan_end),
-        low_balance_threshold=500,
-    )
+    # Don't auto-create billing plan for new students
+    # Plans should be created explicitly when payment is received
 
     # Create user credentials
     with get_cursor() as cur:

@@ -127,10 +127,18 @@ def billing_report(_: dict = Depends(require_admin)):
                 bp.plan_end,
                 bp.low_balance_threshold,
                 bp.is_active,
-                (bp.installment_amount - bp.balance) AS total_consumed
+                COALESCE(meal_consumed.total_spent, 0) AS total_consumed
             FROM students s
             LEFT JOIN billing_plans bp
                 ON bp.student_id = s.id AND bp.is_active = TRUE
+            LEFT JOIN (
+                SELECT 
+                    student_id, 
+                    SUM(ABS(amount)) as total_spent
+                FROM billing_transactions 
+                WHERE transaction_type = 'deduction'
+                GROUP BY student_id
+            ) meal_consumed ON meal_consumed.student_id = s.id
             ORDER BY bp.balance ASC NULLS LAST
             """
         )
