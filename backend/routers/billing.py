@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from typing import Optional
 
-from auth import require_admin, require_staff_or_admin
+from auth import require_admin, require_staff_or_admin, get_current_user
 from database import get_cursor
 from services.billing_service import create_plan, renew_plan
 
@@ -53,6 +53,38 @@ def create_billing_plan(body: CreatePlanRequest, _: dict = Depends(require_admin
     return {"success": True, "data": plan}
 
 
+@router.post("/my-plan")
+def create_my_plan(body: CreatePlanRequest, current_user: dict = Depends(get_current_user)):
+    """Create a billing plan for the current student (self-service)"""
+    # Verify the current user is creating a plan for themselves
+    with get_cursor() as cur:
+        cur.execute(
+            "SELECT id, role FROM users WHERE id = %s",
+            (current_user["id"],),
+        )
+        user_row = cur.fetchone()
+        if not user_row or user_row["role"] != "student":
+            raise HTTPException(status_code=403, detail="Students can only create plans for themselves")
+        
+        # Verify the student_id matches the current user's student record
+        cur.execute(
+            "SELECT id FROM students WHERE roll_no = %s",
+            (current_user["username"],),
+        )
+        student_row = cur.fetchone()
+        if not student_row or student_row["id"] != body.student_id:
+            raise HTTPException(status_code=403, detail="You can only create plans for yourself")
+    
+    plan = create_plan(
+        student_id=body.student_id,
+        installment_amount=body.installment_amount,
+        plan_start=body.plan_start,
+        plan_end=body.plan_end,
+        low_balance_threshold=body.low_balance_threshold,
+    )
+    return {"success": True, "data": plan}
+
+
 @router.post("/plans/{plan_id}/renew")
 def renew_billing_plan(
     plan_id: int,
@@ -76,6 +108,51 @@ def renew_billing_plan(
         low_balance_threshold=body.low_balance_threshold,
     )
     return {"success": True, "data": result}
+
+
+@router.post("/my-plan/renew")
+def renew_my_plan(body: RenewPlanRequest, current_user: dict = Depends(get_current_user)):
+    """Renew current student's own plan (self-service)"""
+    # Verify the current user is a student
+    with get_cursor() as cur:
+        cur.execute(
+            "SELECT id, role FROM users WHERE id = %s",
+            (current_user["id"],),
+        )
+        user_row = cur.fetchone()
+        if not user_row or user_row["role"] != "student":
+            raise HTTPException(status_code=403, detail="Students can only renew their own plans")
+        
+        # Get the student's current active plan
+        cur.execute(
+            "SELECT id FROM students WHERE roll_no = %s",
+            (current_user["username"],),
+        )
+        student_row = cur.fetchone()
+        if not student_row:
+            raise HTTPException(status_code=404, detail="Student record not found")
+        
+        student_id = student_row["id"]
+        
+        cur.execute(
+            "SELECT id FROM billing_plans WHERE student_id = %s AND is_active = TRUE",
+            (student_id,),
+        )
+        plan_row = cur.fetchone()
+        if not plan_row:
+            raise HTTPException(status_code=404, detail="No active plan found for renewal")
+        
+        plan_id = plan_row["id"]
+
+    result = renew_plan(
+        student_id=student_id,
+        new_installment_amount=body.new_installment_amount,
+        new_plan_end=body.new_plan_end,
+        low_balance_threshold=body.low_balance_threshold,
+    )
+    new_plan, carry_forward_amount = result
+    
+    return {"success": True, "data": {"new_plan": new_plan, "carry_forward_amount": carry_forward_amount}}
 
 
 @router.get("/plans/{student_id}")

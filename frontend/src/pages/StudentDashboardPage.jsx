@@ -126,19 +126,19 @@ export default function StudentDashboardPage() {
         <div className="stat-grid mb-6">
           <div className="stat-card">
             <div className="stat-icon">Meals</div>
-            <div className="stat-label">Total Meals</div>
+            <div className="stat-label">Meal Count</div>
             <div className="stat-value">{entries?.length || 0}</div>
             <div className="stat-sub">This month</div>
           </div>
           <div className="stat-card">
             <div className="stat-icon">Transactions</div>
-            <div className="stat-label">Transactions</div>
+            <div className="stat-label">Payment Records</div>
             <div className="stat-value">{transactions?.length || 0}</div>
             <div className="stat-sub">All time</div>
           </div>
           <div className="stat-card">
             <div className="stat-icon">Plans</div>
-            <div className="stat-label">Active Plans</div>
+            <div className="stat-label">Current Plan</div>
             <div className="stat-value">{plans?.filter(p => p.is_active).length || 0}</div>
             <div className="stat-sub">Currently active</div>
           </div>
@@ -279,7 +279,7 @@ export default function StudentDashboardPage() {
                   </div>
                 ) : (
                   <div className="empty-state">
-                    <div className="empty-state-icon">Meals</div>
+                    <div className="empty-state-icon">🍽️</div>
                     <h3>No meal records found</h3>
                     <p>You haven't had any meals recorded yet</p>
                   </div>
@@ -335,7 +335,7 @@ export default function StudentDashboardPage() {
                   </div>
                 ) : (
                   <div className="empty-state">
-                    <div className="empty-state-icon">Transactions</div>
+                    <div className="empty-state-icon">💳</div>
                     <h3>No transaction records found</h3>
                     <p>You don't have any transactions yet</p>
                   </div>
@@ -395,9 +395,9 @@ export default function StudentDashboardPage() {
                   </div>
                 ) : (
                   <div className="empty-state">
-                    <div className="empty-state-icon">Plans</div>
+                    <div className="empty-state-icon">📋</div>
                     <h3>No billing plans found</h3>
-                    <p>You don't have any active billing plans</p>
+                    <p>Create your first plan to start using mess facility</p>
                   </div>
                 )}
               </div>
@@ -406,8 +406,8 @@ export default function StudentDashboardPage() {
         </div>
 
         {/* Action Buttons */}
-        {activePlan && (
-          <div style={{ marginTop: 24, display: 'flex', gap: 12 }}>
+        <div style={{ marginTop: 24, display: 'flex', gap: 12 }}>
+          {activePlan ? (
             <button className="btn btn-primary" onClick={() => navigate('/renew-plan')}>
               <span>Renew Plan</span>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -416,8 +416,15 @@ export default function StudentDashboardPage() {
                 <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
               </svg>
             </button>
-          </div>
-        )}
+          ) : (
+            <button className="btn btn-primary" onClick={() => navigate('/renew-plan')}>
+              <span>Create Plan</span>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M12 2v20M2 12h20"/>
+              </svg>
+            </button>
+          )}
+        </div>
       </div>
     </>
   )

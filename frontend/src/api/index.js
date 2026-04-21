@@ -74,8 +74,14 @@ export const getMealHistory = (student_id) =>
 export const createBillingPlan = (data) =>
   api.post('/billing/plans', data).then((r) => r.data.data)
 
+export const createMyPlan = (data) =>
+  api.post('/billing/my-plan', data).then((r) => r.data.data)
+
 export const renewBillingPlan = (plan_id, data) =>
   api.post(`/billing/plans/${plan_id}/renew`, data).then((r) => r.data.data)
+
+export const renewMyPlan = (data) =>
+  api.post('/billing/my-plan/renew', data).then((r) => r.data.data)
 
 export const getStudentPlans = (student_id) =>
   api.get(`/billing/plans/${student_id}`).then((r) => r.data.data)

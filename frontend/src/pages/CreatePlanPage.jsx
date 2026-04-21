@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
-import { getStudent, createBillingPlan, renewBillingPlan, getCurrentStudent } from '../api'
+import { getStudent, createBillingPlan, createMyPlan, renewBillingPlan, renewMyPlan, getCurrentStudent } from '../api'
 
 export default function CreatePlanPage() {
   const { id } = useParams()
@@ -56,25 +56,58 @@ export default function CreatePlanPage() {
     setSaving(true)
     try {
       if (isRenewal) {
-        const data = await renewBillingPlan(renewal.id, {
-          new_installment_amount: parseFloat(form.installment_amount),
-          new_plan_end: form.plan_end,
-          low_balance_threshold: parseFloat(form.low_balance_threshold),
-        })
+        if (!renewal || !renewal.id) {
+          toast.error('Plan information not available for renewal. Please refresh and try again.')
+          return
+        }
+        // Use appropriate endpoint based on access type
+        let data;
+        if (id) {
+          // Admin renewing student's plan
+          data = await renewBillingPlan(renewal.id, {
+            new_installment_amount: parseFloat(form.installment_amount),
+            new_plan_end: form.plan_end,
+            low_balance_threshold: parseFloat(form.low_balance_threshold),
+          })
+        } else {
+          // Student renewing their own plan
+          data = await renewMyPlan({
+            new_installment_amount: parseFloat(form.installment_amount),
+            new_plan_end: form.plan_end,
+            low_balance_threshold: parseFloat(form.low_balance_threshold),
+          })
+        }
         toast.success(
-          `Payment recorded! New balance: ₹${parseFloat(data.new_plan.balance).toFixed(2)}` +
+          `Payment recorded! New balance: ${parseFloat(data.new_plan.balance).toFixed(2)}` +
           (data.carry_forward_amount < 0
-            ? ` (debt of ₹${Math.abs(data.carry_forward_amount).toFixed(2)} cleared)`
-            : data.carry_forward_amount > 0 ? ` (+ ₹${data.carry_forward_amount.toFixed(2)} credit)` : '')
+            ? ` (debt of ${Math.abs(data.carry_forward_amount).toFixed(2)} cleared)`
+            : data.carry_forward_amount > 0 ? ` (+ ${data.carry_forward_amount.toFixed(2)} credit)` : '')
         )
       } else {
-        await createBillingPlan({
-          student_id: student.id, // Use student object's ID when no URL parameter
-          installment_amount: parseFloat(form.installment_amount),
-          plan_start: form.plan_start,
-          plan_end: form.plan_end,
-          low_balance_threshold: parseFloat(form.low_balance_threshold),
-        })
+        if (!student || !student.id) {
+          toast.error('Student information not available. Please refresh and try again.')
+          return
+        }
+        // Use appropriate endpoint based on access type
+        if (id) {
+          // Admin creating plan for student
+          await createBillingPlan({
+            student_id: student.id,
+            installment_amount: parseFloat(form.installment_amount),
+            plan_start: form.plan_start,
+            plan_end: form.plan_end,
+            low_balance_threshold: parseFloat(form.low_balance_threshold),
+          })
+        } else {
+          // Student creating their own plan
+          await createMyPlan({
+            student_id: student.id,
+            installment_amount: parseFloat(form.installment_amount),
+            plan_start: form.plan_start,
+            plan_end: form.plan_end,
+            low_balance_threshold: parseFloat(form.low_balance_threshold),
+          })
+        }
         toast.success('Billing plan created!')
       }
       // Navigate back based on context
@@ -83,8 +116,9 @@ export default function CreatePlanPage() {
       } else {
         navigate('/dashboard') // Student goes back to dashboard
       }
-    } catch (err) {
-      toast.error(err.response?.data?.detail || 'Failed to save plan')
+    } catch (error) {
+      console.error('Plan creation error:', error)
+      toast.error(error.response?.data?.detail || 'Failed to create plan. Please try again.')
     } finally {
       setSaving(false)
     }
