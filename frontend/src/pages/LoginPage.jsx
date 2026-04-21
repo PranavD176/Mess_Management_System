@@ -45,7 +45,7 @@ export default function LoginPage() {
               id="username"
               className="form-input"
               type="text"
-              placeholder="roll number / admin / staff"
+              placeholder="username"
               value={form.username}
               onChange={(e) => setForm({ ...form, username: e.target.value })}
               required

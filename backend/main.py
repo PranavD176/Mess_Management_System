@@ -3,6 +3,7 @@ main.py — FastAPI application entry point
 """
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 
 from routers import auth, students, meals, billing
 
@@ -25,6 +26,9 @@ app.include_router(auth.router, prefix="/auth", tags=["Auth"])
 app.include_router(students.router, prefix="/students", tags=["Students"])
 app.include_router(meals.router, prefix="/meals", tags=["Meals"])
 app.include_router(billing.router, prefix="/billing", tags=["Billing"])
+
+# Mount static files for uploaded PDFs
+app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 
 
 @app.get("/", tags=["Health"])

@@ -123,6 +123,7 @@ def renew_plan(
     new_installment_amount: float,
     new_plan_end: str,
     low_balance_threshold: float = LOW_BALANCE_DEFAULT,
+    plan_start: str = None,
 ) -> dict:
     """
     Renew a student's billing plan:
@@ -142,8 +143,12 @@ def renew_plan(
 
         carry_forward = float(old_plan["balance"]) if old_plan else 0.0
         new_balance = new_installment_amount + carry_forward
-        # Use old plan's end_date as new plan start
-        new_start = old_plan["plan_end"] if old_plan else None
+        # Use old plan's end_date as new plan start, or provided plan_start, or today
+        if old_plan:
+            new_start = old_plan["plan_end"]
+        else:
+            from datetime import date
+            new_start = plan_start if plan_start else date.today().isoformat()
 
         if old_plan:
             cur.execute(

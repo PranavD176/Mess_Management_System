@@ -70,9 +70,16 @@ export default function StudentDetailPage() {
             <h1 className="page-title">👤 {student.name}</h1>
             <p className="page-subtitle">{student.roll_no} · {student.course} {student.branch && `· ${student.branch}`} · Year {student.year}</p>
           </div>
-          <button className="btn btn-primary btn-sm" onClick={() => navigate(`/students/${id}/plan`)}>
-            {plan ? '🔄 Renew Plan' : '💳 Create Plan'}
-          </button>
+          <div style={{ display: 'flex', gap: 8 }}>
+            {student.fee_receipt && (
+              <a href={student.fee_receipt} target="_blank" rel="noopener noreferrer" className="btn btn-ghost btn-sm" style={{ border: '1px solid var(--border)' }}>
+                📄 Fee Receipt
+              </a>
+            )}
+            <button className="btn btn-primary btn-sm" onClick={() => navigate(`/students/${id}/plan`)}>
+              {plan ? '🔄 Renew Plan' : '💳 Create Plan'}
+            </button>
+          </div>
         </div>
       </div>
 
