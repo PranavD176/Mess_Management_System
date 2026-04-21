@@ -18,7 +18,7 @@ export default function CreatePlanPage() {
     installment_amount: '',
     plan_start: today,
     plan_end: sixMonthsLater,
-    low_balance_threshold: '500',
+    low_balance_threshold: 500,
   })
   const [renewal, setRenewal] = useState(null)
 
@@ -221,17 +221,11 @@ export default function CreatePlanPage() {
               </div>
 
               <div className="form-group">
-                <label className="form-label" htmlFor="threshold">Low Balance Warning Threshold (₹)</label>
-                <input
-                  id="threshold"
-                  className="form-input"
-                  type="number"
-                  step="50"
-                  min="0"
-                  value={form.low_balance_threshold}
-                  onChange={e => setForm({ ...form, low_balance_threshold: e.target.value })}
-                />
-                <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>Staff sees a warning when balance drops below this</span>
+                <label className="form-label">Low Balance Warning Threshold (₹)</label>
+                <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 4 }}>
+                  ₹500 (Fixed)
+                </div>
+                <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>Staff sees a warning when balance drops below this amount</span>
               </div>
 
               <button type="submit" className="btn btn-primary btn-lg" disabled={saving || !feeReceipt}>
