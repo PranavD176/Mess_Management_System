@@ -98,4 +98,22 @@ export const getBalance = (student_id) =>
 export const adjustBalance = (data) =>
   api.post('/billing/adjust', data).then((r) => r.data.data)
 
+// ── Pending Plans & Approvals ────────────────────────────────
+export const submitPendingPlan = (formData) =>
+  api.post('/billing/pending-plans', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' }
+  }).then((r) => r.data.data)
+
+export const getPendingPlans = () =>
+  api.get('/billing/pending-plans').then((r) => r.data.data)
+
+export const approvePlan = (planId, adminNotes = '') =>
+  api.post(`/billing/approve-plan/${planId}`, { admin_notes: adminNotes }).then((r) => r.data.data)
+
+export const rejectPlan = (planId, adminNotes) =>
+  api.post(`/billing/reject-plan/${planId}`, { admin_notes: adminNotes }).then((r) => r.data.data)
+
+export const getPlanStatus = (studentId) =>
+  api.get(`/billing/plan-status/${studentId}`).then((r) => r.data.data)
+
 export default api

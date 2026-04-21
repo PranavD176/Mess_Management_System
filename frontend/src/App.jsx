@@ -8,6 +8,7 @@ import ScanPage           from './pages/ScanPage'
 import RegisterStudentPage from './pages/RegisterStudentPage'
 import PublicRegisterPage  from './pages/PublicRegisterPage'
 import ApproveRegistrationPage from './pages/ApproveRegistrationPage'
+import ApprovePlanPage      from './pages/ApprovePlanPage'
 import StudentListPage    from './pages/StudentListPage'
 import StudentDetailPage  from './pages/StudentDetailPage'
 import StudentDashboardPage from './pages/StudentDashboardPage'
@@ -39,6 +40,7 @@ function AppShell() {
           <Route path="/students/:id"    element={<ProtectedRoute requireAdmin><StudentDetailPage /></ProtectedRoute>} />
           <Route path="/students/:id/plan" element={<ProtectedRoute requireAdmin><CreatePlanPage /></ProtectedRoute>} />
           <Route path="/approve-registration" element={<ProtectedRoute requireAdmin><ApproveRegistrationPage /></ProtectedRoute>} />
+          <Route path="/approve-plans"   element={<ProtectedRoute requireAdmin><ApprovePlanPage /></ProtectedRoute>} />
           <Route path="/adjust"          element={<ProtectedRoute requireAdmin><ManualAdjustPage /></ProtectedRoute>} />
           <Route path="/reports/daily"   element={<ProtectedRoute requireAdmin><DailyReportPage /></ProtectedRoute>} />
           <Route path="/reports/monthly" element={<ProtectedRoute requireAdmin><MonthlyReportPage /></ProtectedRoute>} />

@@ -6,6 +6,7 @@ const adminLinks = [
   { to: '/students',         icon: '👥', label: 'Students' },
   { to: '/students/new',     icon: '➕', label: 'Register Student' },
   { to: '/approve-registration', icon: '✔️', label: 'Approve Registration' },
+  { to: '/approve-plans',    icon: '✅', label: 'Approve Plans' },
   { to: '/adjust',           icon: '⚖️',  label: 'Manual Adjustment' },
   { to: '/reports/daily',    icon: '📅', label: 'Daily Report' },
   { to: '/reports/monthly',  icon: '📊', label: 'Monthly Report' },

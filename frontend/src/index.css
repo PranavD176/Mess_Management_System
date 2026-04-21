@@ -498,3 +498,51 @@ tbody tr.row-danger  td { background: var(--danger-bg); }
 /* react-datepicker overrides */
 .react-datepicker-wrapper { width: 100%; }
 .react-datepicker__input-container input { width: 100%; }
+
+/* ── File Upload & Approve Plans ─────────────────────────────── */
+.file-upload-container {
+  position: relative;
+  margin-bottom: 1rem;
+}
+.file-input { display: none; }
+.file-upload-label {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: 2rem; border: 2px dashed var(--border); border-radius: 8px;
+  cursor: pointer; transition: all 0.3s ease; background: rgba(255, 255, 255, 0.02);
+}
+.file-upload-label:hover {
+  border-color: var(--primary); background: rgba(255, 255, 255, 0.05);
+}
+.file-upload-icon { font-size: 2rem; margin-bottom: 0.5rem; }
+.file-upload-text { font-size: 1rem; color: var(--text-primary); margin-bottom: 0.25rem; }
+.file-upload-subtext { font-size: 0.875rem; color: var(--text-muted); }
+
+.plans-list {
+  max-height: 600px;
+  overflow-y: auto;
+}
+.plan-item {
+  padding: 1rem; border: 1px solid var(--border); border-radius: 8px;
+  margin-bottom: 0.5rem; cursor: pointer; transition: all 0.3s ease;
+}
+.plan-item:hover { border-color: var(--accent); background: rgba(255,255,255,0.03); }
+.plan-item.active { border-color: var(--accent); background: rgba(59, 130, 246, 0.1); }
+.plan-header { margin-bottom: 0.5rem; }
+.plan-name { font-weight: 600; color: var(--text-primary); }
+.plan-roll { font-size: 0.875rem; color: var(--text-muted); }
+.plan-details { display: flex; justify-content: space-between; align-items: center; }
+.plan-amount { font-weight: bold; color: var(--success); }
+.plan-date { font-size: 0.75rem; color: var(--text-muted); }
+
+.review-section { margin-bottom: 2rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border); }
+.review-section:last-child { border-bottom: none; }
+.section-title { font-size: 1.125rem; font-weight: 600; color: var(--text-primary); margin-bottom: 1rem; }
+.info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; }
+.info-item { display: flex; flex-direction: column; gap: 0.25rem; }
+.info-label { font-size: 0.875rem; color: var(--text-muted); }
+.info-value { font-size: 0.875rem; color: var(--text-primary); font-weight: 500; }
+.info-value.amount { font-size: 1rem; font-weight: bold; color: var(--success); }
+.receipt-preview { background: rgba(255,255,255,0.02); border: 1px solid var(--border); border-radius: 8px; padding: 1rem; }
+.receipt-actions { display: flex; gap: 1rem; margin-bottom: 1rem; }
+.receipt-note { font-size: 0.875rem; color: var(--text-muted); font-style: italic; }
+.admin-actions { background: rgba(255,255,255,0.02); border: 1px solid var(--border); border-radius: 8px; padding: 1rem; }

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
-import { getStudent, createBillingPlan, createMyPlan, renewBillingPlan, renewMyPlan, getCurrentStudent } from '../api'
+import { getStudent, createBillingPlan, createMyPlan, renewBillingPlan, renewMyPlan, getCurrentStudent, submitPendingPlan } from '../api'
 
 export default function CreatePlanPage() {
   const { id } = useParams()
@@ -9,6 +9,7 @@ export default function CreatePlanPage() {
   const [student, setStudent] = useState(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
+  const [feeReceipt, setFeeReceipt] = useState(null)
 
   const today = new Date().toISOString().slice(0, 10)
   const sixMonthsLater = new Date(Date.now() + 183 * 86400000).toISOString().slice(0, 10)
@@ -51,74 +52,57 @@ export default function CreatePlanPage() {
 
   const isRenewal = !!renewal
 
+  const handleFileChange = (e) => {
+    const file = e.target.files[0]
+    if (file) {
+      if (file.type !== 'application/pdf') {
+        toast.error('Only PDF files are allowed')
+        return
+      }
+      if (file.size > 3 * 1024 * 1024) {
+        toast.error('File size must be less than 3MB')
+        return
+      }
+      setFeeReceipt(file)
+      toast.success('PDF file selected successfully')
+    }
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault()
+    
+    if (!feeReceipt) {
+      toast.error('Please upload fee receipt PDF (mandatory)')
+      return
+    }
+    
+    if (!form.installment_amount || parseFloat(form.installment_amount) <= 0) {
+      toast.error('Please enter a valid amount')
+      return
+    }
+
     setSaving(true)
     try {
-      if (isRenewal) {
-        if (!renewal || !renewal.id) {
-          toast.error('Plan information not available for renewal. Please refresh and try again.')
-          return
-        }
-        // Use appropriate endpoint based on access type
-        let data;
-        if (id) {
-          // Admin renewing student's plan
-          data = await renewBillingPlan(renewal.id, {
-            new_installment_amount: parseFloat(form.installment_amount),
-            new_plan_end: form.plan_end,
-            low_balance_threshold: parseFloat(form.low_balance_threshold),
-          })
-        } else {
-          // Student renewing their own plan
-          data = await renewMyPlan({
-            new_installment_amount: parseFloat(form.installment_amount),
-            new_plan_end: form.plan_end,
-            low_balance_threshold: parseFloat(form.low_balance_threshold),
-          })
-        }
-        toast.success(
-          `Payment recorded! New balance: ${parseFloat(data.new_plan.balance).toFixed(2)}` +
-          (data.carry_forward_amount < 0
-            ? ` (debt of ${Math.abs(data.carry_forward_amount).toFixed(2)} cleared)`
-            : data.carry_forward_amount > 0 ? ` (+ ${data.carry_forward_amount.toFixed(2)} credit)` : '')
-        )
-      } else {
-        if (!student || !student.id) {
-          toast.error('Student information not available. Please refresh and try again.')
-          return
-        }
-        // Use appropriate endpoint based on access type
-        if (id) {
-          // Admin creating plan for student
-          await createBillingPlan({
-            student_id: student.id,
-            installment_amount: parseFloat(form.installment_amount),
-            plan_start: form.plan_start,
-            plan_end: form.plan_end,
-            low_balance_threshold: parseFloat(form.low_balance_threshold),
-          })
-        } else {
-          // Student creating their own plan
-          await createMyPlan({
-            student_id: student.id,
-            installment_amount: parseFloat(form.installment_amount),
-            plan_start: form.plan_start,
-            plan_end: form.plan_end,
-            low_balance_threshold: parseFloat(form.low_balance_threshold),
-          })
-        }
-        toast.success('Billing plan created!')
-      }
+      // Submit for admin approval workflow
+      const formData = new FormData()
+      formData.append('fee_receipt', feeReceipt)
+      formData.append('student_id', student.id)
+      formData.append('amount', form.installment_amount)
+      formData.append('plan_start', form.plan_start)
+      formData.append('plan_end', form.plan_end)
+      formData.append('low_balance_threshold', form.low_balance_threshold)
+
+      await submitPendingPlan(formData)
+      toast.success('Plan submitted for admin approval! You will be notified once reviewed.')
+      
       // Navigate back based on context
       if (id) {
-        navigate(`/students/${id}`) // Admin goes back to student detail
+        navigate(`/students/${id}`) 
       } else {
-        navigate('/dashboard') // Student goes back to dashboard
+        navigate('/dashboard') 
       }
-    } catch (error) {
-      console.error('Plan creation error:', error)
-      toast.error(error.response?.data?.detail || 'Failed to create plan. Please try again.')
+    } catch (err) {
+      toast.error(err.response?.data?.detail || err.message || 'Failed to submit plan')
     } finally {
       setSaving(false)
     }
@@ -163,6 +147,38 @@ export default function CreatePlanPage() {
             )}
 
             <form onSubmit={handleSubmit}>
+              <div className="form-group mb-4">
+                <label className="form-label">Fee Receipt (Mandatory PDF, max 3MB)</label>
+                <div className="file-upload-container">
+                  <input
+                    type="file"
+                    id="feeReceipt"
+                    accept=".pdf"
+                    onChange={handleFileChange}
+                    className="file-input"
+                    required
+                  />
+                  <label htmlFor="feeReceipt" className="file-upload-label">
+                    <div className="file-upload-icon">📄</div>
+                    <div className="file-upload-text">
+                      {feeReceipt ? feeReceipt.name : 'Choose PDF file or drag and drop'}
+                    </div>
+                    <div className="file-upload-subtext">
+                      {feeReceipt ? `(${(feeReceipt.size / 1024 / 1024).toFixed(2)} MB)` : 'Click to select a file'}
+                    </div>
+                  </label>
+                </div>
+                {feeReceipt && (
+                  <button
+                    type="button"
+                    className="btn btn-sm btn-ghost mt-2"
+                    onClick={() => setFeeReceipt(null)}
+                  >
+                    Remove File
+                  </button>
+                )}
+              </div>
+
               <div className="form-group">
                 <label className="form-label" htmlFor="plan-amount">
                   Installment Amount (₹) {isRenewal && '— new payment received'}
@@ -214,8 +230,8 @@ export default function CreatePlanPage() {
                 <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>Staff sees a warning when balance drops below this amount</span>
               </div>
 
-              <button type="submit" className="btn btn-primary btn-lg" disabled={saving}>
-                {saving ? '⏳ Saving…' : isRenewal ? '🔄 Renew Plan' : '✅ Create Plan'}
+              <button type="submit" className="btn btn-primary btn-lg" disabled={saving || !feeReceipt}>
+                {saving ? '⏳ Submitting…' : '✅ Submit for Approval'}
               </button>
             </form>
           </div>
