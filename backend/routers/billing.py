@@ -350,6 +350,34 @@ def get_plan_status(student_id: int, current_user: dict = Depends(get_current_us
         return {"success": True, "data": {"status": "no_pending_plans"}}
 
 
+@router.get("/my-plan-status")
+def get_my_plan_status(current_user: dict = Depends(get_current_user)):
+    """Get plan status for logged-in student"""
+    if current_user["role"] != "student":
+        raise HTTPException(status_code=403, detail="Only students can access their plan status")
+        
+    with get_cursor() as cur:
+        cur.execute("SELECT id FROM students WHERE roll_no = %s", (current_user["username"],))
+        student_row = cur.fetchone()
+        if not student_row:
+            raise HTTPException(status_code=404, detail="Student not found")
+        
+        student_id = student_row["id"]
+        
+        cur.execute("""
+            SELECT * FROM pending_plans 
+            WHERE student_id = %s 
+            ORDER BY created_at DESC 
+            LIMIT 1
+        """, (student_id,))
+        plan = cur.fetchone()
+        
+        if plan:
+            return {"success": True, "data": dict(plan)}
+        
+        return {"success": True, "data": {"status": "no_pending_plans"}}
+
+
 # ── Transactions ──────────────────────────────────────────────
 
 @router.get("/transactions/{student_id}")
@@ -398,174 +426,6 @@ def billing_report(_: dict = Depends(require_admin)):
         rows = cur.fetchall()
     return {"success": True, "data": [dict(r) for r in rows]}
 
-
-# ── Pending Plans & Approval ──────────────────────────
-
-@router.post("/pending-plans")
-async def submit_pending_plan(
-    student_id: int = Form(...),
-    amount: float = Form(...),
-    plan_start: str = Form(...),
-    plan_end: str = Form(...),
-    low_balance_threshold: float = Form(500.0),
-    fee_receipt: UploadFile = File(...),
-    current_user: dict = Depends(get_current_user)
-):
-    """Student submits a plan for admin approval"""
-    
-    if not fee_receipt.filename.endswith('.pdf'):
-        raise HTTPException(status_code=400, detail="Only PDF files are allowed")
-    
-    if fee_receipt.size and fee_receipt.size > 3 * 1024 * 1024:
-        raise HTTPException(status_code=400, detail="File size must be less than 3MB")
-    
-    # Local file storage
-    file_id = str(uuid.uuid4())
-    file_name = f"{file_id}.pdf"
-    file_path = UPLOAD_DIR / file_name
-    
-    try:
-        content = await fee_receipt.read()
-        
-        # Check file size
-        if len(content) > 3 * 1024 * 1024:
-            raise HTTPException(status_code=400, detail="File size must be less than 3MB")
-        
-        # Save file locally
-        with open(file_path, "wb") as f:
-            f.write(content)
-        
-        # Create URL for accessing the file
-        file_url = f"http://localhost:8000/uploads/fee_receipts/{file_name}"
-        
-    except HTTPException:
-        raise
-    except Exception as e:
-        if file_path.exists():
-            file_path.unlink()
-        raise HTTPException(status_code=500, detail=f"Failed to upload file: {str(e)}")
-    
-    with get_cursor() as cur:
-        cur.execute("""
-            INSERT INTO pending_plans 
-            (student_id, amount, fee_receipt_url, plan_start, plan_end, low_balance_threshold)
-            VALUES (%s, %s, %s, %s, %s)
-            RETURNING id
-        """, (student_id, amount, file_url, plan_start, plan_end, low_balance_threshold))
-        plan_id = cur.fetchone()["id"]
-        
-    return {"success": True, "data": {"id": plan_id, "status": "pending", "message": "Plan submitted for approval"}}
-
-@router.get("/pending-plans")
-def get_pending_plans(current_user: dict = Depends(require_admin)):
-    """Get all pending plans for admin review"""
-    with get_cursor() as cur:
-        cur.execute("""
-            SELECT pp.*, s.name, s.roll_no, s.course, s.branch, s.year
-            FROM pending_plans pp
-            JOIN students s ON pp.student_id = s.id
-            WHERE pp.status = 'pending'
-            ORDER BY pp.created_at DESC
-        """)
-        plans = cur.fetchall()
-    return {"success": True, "data": [dict(p) for p in plans]}
-
-@router.post("/approve-plan/{plan_id}")
-def approve_plan(
-    plan_id: int,
-    body: dict,
-    current_user: dict = Depends(require_admin)
-):
-    """Admin approves a pending plan"""
-    admin_notes = body.get("admin_notes", "")
-    
-    with get_cursor() as cur:
-        cur.execute("SELECT * FROM pending_plans WHERE id = %s AND status = 'pending' FOR UPDATE", (plan_id,))
-        plan = cur.fetchone()
-        if not plan:
-            raise HTTPException(status_code=404, detail="Pending plan not found")
-        
-        cur.execute("""
-            UPDATE pending_plans 
-            SET status = 'approved', admin_notes = %s, reviewed_at = NOW(), reviewed_by = %s
-            WHERE id = %s
-        """, (admin_notes, current_user["id"], plan_id))
-        
-    # We will use the existing billing_service function so transactions get logged properly!
-    # If the Student had an active plan before this approval, it's a renewal.
-    with get_cursor() as cur:
-        cur.execute("SELECT id FROM billing_plans WHERE student_id = %s LIMIT 1", (plan["student_id"],))
-        has_history = cur.fetchone() is not None
-        
-    if has_history:
-        # Renew
-        result = renew_plan(
-            student_id=plan["student_id"],
-            new_installment_amount=float(plan["amount"]),
-            new_plan_end=str(plan["plan_end"]),
-            low_balance_threshold=float(plan["low_balance_threshold"]),
-            plan_start=str(plan["plan_start"])
-        )
-    else:
-        # Create
-        result = create_plan(
-            student_id=plan["student_id"],
-            installment_amount=float(plan["amount"]),
-            plan_start=str(plan["plan_start"]),
-            plan_end=str(plan["plan_end"]),
-            low_balance_threshold=float(plan["low_balance_threshold"])
-        )
-        
-    with get_cursor() as cur:
-        # Update student's fee receipt
-        cur.execute("""
-            UPDATE students SET fee_receipt = %s WHERE id = %s
-        """, (plan["fee_receipt_url"], plan["student_id"]))
-        
-    return {"success": True, "data": {"message": "Plan approved successfully", "plan_id": plan_id}}
-
-@router.post("/reject-plan/{plan_id}")
-def reject_plan(
-    plan_id: int,
-    body: dict,
-    current_user: dict = Depends(require_admin)
-):
-    """Admin rejects a pending plan"""
-    admin_notes = body.get("admin_notes", "")
-    
-    with get_cursor() as cur:
-        cur.execute("""
-            UPDATE pending_plans 
-            SET status = 'rejected', admin_notes = %s, reviewed_at = NOW(), reviewed_by = %s
-            WHERE id = %s AND status = 'pending'
-        """, (admin_notes, current_user["id"], plan_id))
-        
-        if cur.rowcount == 0:
-            raise HTTPException(status_code=404, detail="Pending plan not found or already processed")
-            
-    return {"success": True, "data": {"message": "Plan rejected successfully", "plan_id": plan_id}}
-
-@router.get("/plan-status/{student_id}")
-def get_plan_status(student_id: int, current_user: dict = Depends(get_current_user)):
-    """Get plan status for student"""
-    if current_user["role"] != "admin" and int(current_user.get("student_id") or current_user.get("id")) != student_id:
-        # Note: JWT uses sub for student id usually, or username. 
-        # We can just verify via role or let it pass since data is low risk.
-        pass
-    
-    with get_cursor() as cur:
-        cur.execute("""
-            SELECT * FROM pending_plans 
-            WHERE student_id = %s 
-            ORDER BY created_at DESC 
-            LIMIT 1
-        """, (student_id,))
-        plan = cur.fetchone()
-        
-        if plan:
-            return {"success": True, "data": dict(plan)}
-        
-        return {"success": True, "data": {"status": "no_pending_plans"}}
 
 # ── Balance (staff read-only) ─────────────────────────────────
 
