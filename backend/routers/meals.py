@@ -45,7 +45,7 @@ def scan_meal(body: ScanRequest, current_user: dict = Depends(require_staff_or_a
             )
 
         meal_type = slot["meal_type"]
-        rate = float(slot["rate"])
+        rate = int(slot["rate"])
 
         # ── 2. Verify student — accept DB id OR roll_no ──────────────────
         try:
@@ -97,11 +97,11 @@ def scan_meal(body: ScanRequest, current_user: dict = Depends(require_staff_or_a
         # ── 6. Deduct balance (same transaction) ──────────────────────────
         warning = None
         balance_remaining = None
-        amount_deducted = 0.0
+        amount_deducted = 0
 
         if plan:
-            new_balance = float(plan["balance"]) - rate
-            threshold   = float(plan.get("low_balance_threshold") or 500)
+            new_balance = int(plan["balance"]) - rate
+            threshold   = int(plan.get("low_balance_threshold") or 500)
             amount_deducted = rate
             balance_remaining = new_balance
 
@@ -119,9 +119,9 @@ def scan_meal(body: ScanRequest, current_user: dict = Depends(require_staff_or_a
             )
 
             if new_balance <= 0:
-                warning = f"Balance exhausted (₹{new_balance:.2f}). Please renew the plan."
+                warning = f"Balance exhausted (₹{new_balance}). Please renew the plan."
             elif new_balance < threshold:
-                warning = f"Low balance: ₹{new_balance:.2f} remaining."
+                warning = f"Low balance: ₹{new_balance} remaining."
         else:
             warning = "No active billing plan. Meal recorded but no amount was deducted."
 
@@ -177,7 +177,7 @@ def daily_report(
             "date": date,
             "by_student": [dict(r) for r in by_student],
             "total_entries": totals["total_entries"],
-            "grand_total": float(totals["grand_total"] or 0),
+            "grand_total": int(totals["grand_total"] or 0),
         },
     }
 

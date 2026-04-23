@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import toast from 'react-hot-toast'
 import { getDailyReport } from '../api'
+import { formatMoney, toMoneyInt } from '../utils/money'
 
 export default function DailyReportPage() {
   const today = new Date().toISOString().slice(0, 10)
@@ -68,14 +69,14 @@ export default function DailyReportPage() {
               <div className="stat-card">
                 <div className="stat-icon">💰</div>
                 <div className="stat-label">Total Deducted</div>
-                <div className="stat-value" style={{ fontSize: 22 }}>₹{(report.grand_total || 0).toFixed(0)}</div>
+                <div className="stat-value" style={{ fontSize: 22 }}>{formatMoney(report.grand_total, '₹0')}</div>
                 <div className="stat-sub">Revenue collected</div>
               </div>
               <div className="stat-card">
                 <div className="stat-icon">📊</div>
                 <div className="stat-label">Avg per Student</div>
                 <div className="stat-value">
-                  ₹{report.by_student?.length ? ((report.grand_total || 0) / report.by_student.length).toFixed(0) : 0}
+                  ₹{report.by_student?.length ? Math.round((toMoneyInt(report.grand_total) ?? 0) / report.by_student.length) : 0}
                 </div>
                 <div className="stat-sub">Average amount</div>
               </div>
@@ -108,7 +109,7 @@ export default function DailyReportPage() {
                           <td><span className="badge badge-info">{row.roll_no}</span></td>
                           <td><strong>{row.scan_count}</strong></td>
                           <td>{row.avg_meals_divided_by_3?.toFixed(2) || '0.00'}</td>
-                          <td><strong style={{ color: 'var(--success)' }}>₹{parseFloat(row.total_amount || 0).toFixed(2)}</strong></td>
+                          <td><strong style={{ color: 'var(--success)' }}>{formatMoney(row.total_amount, '₹0')}</strong></td>
                         </tr>
                       ))}
                     </tbody>
@@ -118,7 +119,7 @@ export default function DailyReportPage() {
                         <td><strong>{report.by_student?.length || 0} Students</strong></td>
                         <td><strong>{report.total_entries}</strong></td>
                         <td>—</td>
-                        <td><strong style={{ color: 'var(--success)', fontSize: 15 }}>₹{(report.grand_total || 0).toFixed(2)}</strong></td>
+                        <td><strong style={{ color: 'var(--success)', fontSize: 15 }}>{formatMoney(report.grand_total, '₹0')}</strong></td>
                       </tr>
                     </tfoot>
                   </table>

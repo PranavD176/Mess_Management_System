@@ -1,7 +1,7 @@
 # Environments
 .env
 .env.*
-*.env
+backend/.env
 !.env.example
 
 # Credentials (plain-text passwords — never commit!)

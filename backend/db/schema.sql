@@ -34,7 +34,7 @@ CREATE TABLE IF NOT EXISTS meal_slots (
     meal_type  VARCHAR(20)  UNIQUE NOT NULL CHECK (meal_type IN ('breakfast','lunch','dinner')),
     start_time TIME         NOT NULL,
     end_time   TIME         NOT NULL,
-    rate       NUMERIC(8,2) NOT NULL
+    rate       INTEGER      NOT NULL
 );
 
 -- ── meal_entry ───────────────────────────────────────────────
@@ -45,7 +45,7 @@ CREATE TABLE IF NOT EXISTS meal_entry (
     entry_time      TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
     entry_date      DATE         NOT NULL DEFAULT CURRENT_DATE,
     recorded_by     INT          REFERENCES users(id),
-    amount_deducted NUMERIC(8,2) NOT NULL
+    amount_deducted INTEGER      NOT NULL
 );
 
 CREATE UNIQUE INDEX IF NOT EXISTS uq_meal_entry
@@ -55,11 +55,11 @@ CREATE UNIQUE INDEX IF NOT EXISTS uq_meal_entry
 CREATE TABLE IF NOT EXISTS billing_plans (
     id                   SERIAL PRIMARY KEY,
     student_id           INT          NOT NULL REFERENCES students(id) ON DELETE CASCADE,
-    installment_amount   NUMERIC(10,2) NOT NULL,
-    balance              NUMERIC(10,2) NOT NULL,
+    installment_amount   INTEGER      NOT NULL,
+    balance              INTEGER      NOT NULL,
     plan_start           DATE         NOT NULL,
     plan_end             DATE         NOT NULL,
-    low_balance_threshold NUMERIC(8,2) NOT NULL DEFAULT 500,
+    low_balance_threshold INTEGER      NOT NULL DEFAULT 500,
     is_active            BOOLEAN      NOT NULL DEFAULT TRUE,
     created_at           TIMESTAMPTZ  DEFAULT NOW()
 );
@@ -77,8 +77,8 @@ CREATE TABLE IF NOT EXISTS billing_transactions (
     transaction_type VARCHAR(20)  NOT NULL CHECK (
         transaction_type IN ('deduction','installment','carry_forward','adjustment')
     ),
-    amount           NUMERIC(10,2) NOT NULL,    -- negative for deductions
-    balance_after    NUMERIC(10,2) NOT NULL,
+    amount           INTEGER      NOT NULL,    -- negative for deductions
+    balance_after    INTEGER      NOT NULL,
     meal_entry_id    INT          REFERENCES meal_entry(id),
     note             VARCHAR(255),
     created_at       TIMESTAMPTZ  DEFAULT NOW()

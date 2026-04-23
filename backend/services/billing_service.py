@@ -8,7 +8,7 @@ from database import get_cursor
 from typing import Optional
 
 
-LOW_BALANCE_DEFAULT = 500.0
+LOW_BALANCE_DEFAULT = 500
 
 
 def get_active_plan(student_id: int) -> Optional[dict]:
@@ -25,7 +25,7 @@ def deduct_meal_cost(
     student_id: int,
     meal_entry_id: int,
     meal_type: str,
-    rate: float,
+    rate: int,
 ) -> dict:
     """
     Deduct `rate` from the student's active billing plan.
@@ -44,7 +44,7 @@ def deduct_meal_cost(
             # No active plan — record entry but return warning
             return {"balance_remaining": None, "warning": "No active billing plan found."}
 
-        new_balance = float(plan["balance"]) - rate
+        new_balance = int(plan["balance"]) - rate
 
         # Update balance
         cur.execute(
@@ -63,22 +63,22 @@ def deduct_meal_cost(
         )
 
     # Determine warning — negative means student is in debt
-    threshold = float(plan.get("low_balance_threshold") or 500)
+    threshold = int(plan.get("low_balance_threshold") or 500)
     warning = None
     if new_balance < 0:
-        warning = f"Outstanding: ₹{abs(new_balance):.2f} owed. Please make payment soon."
+        warning = f"Outstanding: ₹{abs(new_balance)} owed. Please make payment soon."
     elif new_balance < threshold:
-        warning = f"Low balance: ₹{new_balance:.2f} remaining."
+        warning = f"Low balance: ₹{new_balance} remaining."
 
     return {"balance_remaining": new_balance, "warning": warning}
 
 
 def create_plan(
     student_id: int,
-    installment_amount: float,
+    installment_amount: int,
     plan_start: str,
     plan_end: str,
-    low_balance_threshold: float = LOW_BALANCE_DEFAULT,
+    low_balance_threshold: int = LOW_BALANCE_DEFAULT,
 ) -> dict:
     """
     Create a new billing plan for a student.
@@ -120,9 +120,9 @@ def create_plan(
 
 def renew_plan(
     student_id: int,
-    new_installment_amount: float,
+    new_installment_amount: int,
     new_plan_end: str,
-    low_balance_threshold: float = LOW_BALANCE_DEFAULT,
+    low_balance_threshold: int = LOW_BALANCE_DEFAULT,
     plan_start: str = None,
 ) -> dict:
     """
@@ -141,7 +141,7 @@ def renew_plan(
         )
         old_plan = cur.fetchone()
 
-        carry_forward = float(old_plan["balance"]) if old_plan else 0.0
+        carry_forward = int(old_plan["balance"]) if old_plan else 0
         new_balance = new_installment_amount + carry_forward
         # Use old plan's end_date as new plan start, or provided plan_start, or today
         if old_plan:

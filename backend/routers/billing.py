@@ -1,20 +1,15 @@
 """
 routers/billing.py — Billing plans, transactions, reports, adjustments
 """
-from fastapi import APIRouter, Depends, HTTPException
+import uuid
+from pathlib import Path
+
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
 from pydantic import BaseModel
-from typing import Optional
 
 from auth import require_admin, require_staff_or_admin, get_current_user
 from database import get_cursor
 from services.billing_service import create_plan, renew_plan
-
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
-from pydantic import BaseModel
-from typing import Optional
-import os
-import uuid
-from pathlib import Path
 
 # Local file storage for PDFs
 UPLOAD_DIR = Path("uploads/fee_receipts")
@@ -27,21 +22,21 @@ router = APIRouter()
 
 class CreatePlanRequest(BaseModel):
     student_id: int
-    installment_amount: float
+    installment_amount: int
     plan_start: str   # YYYY-MM-DD
     plan_end: str     # YYYY-MM-DD
-    low_balance_threshold: float = 500.0
+    low_balance_threshold: int = 500
 
 
 class RenewPlanRequest(BaseModel):
-    new_installment_amount: float
+    new_installment_amount: int
     new_plan_end: str  # YYYY-MM-DD
-    low_balance_threshold: float = 500.0
+    low_balance_threshold: int = 500
 
 
 class AdjustBalanceRequest(BaseModel):
     student_id: int
-    amount: float   # positive = credit, negative = deduction
+    amount: int   # positive = credit, negative = deduction
     note: str
 
 
@@ -161,9 +156,8 @@ def renew_my_plan(body: RenewPlanRequest, current_user: dict = Depends(get_curre
         new_plan_end=body.new_plan_end,
         low_balance_threshold=body.low_balance_threshold,
     )
-    new_plan, carry_forward_amount = result
-    
-    return {"success": True, "data": {"new_plan": new_plan, "carry_forward_amount": carry_forward_amount}}
+
+    return {"success": True, "data": result}
 
 
 @router.get("/plans/{student_id}")
@@ -182,10 +176,10 @@ def get_student_plans(student_id: int, _: dict = Depends(require_admin)):
 @router.post("/pending-plans")
 async def submit_pending_plan(
     student_id: int = Form(...),
-    amount: float = Form(...),
+    amount: int = Form(...),
     plan_start: str = Form(...),
     plan_end: str = Form(...),
-    low_balance_threshold: float = Form(500.0),
+    low_balance_threshold: int = Form(500),
     fee_receipt: UploadFile = File(...),
     current_user: dict = Depends(get_current_user)
 ):
@@ -281,19 +275,19 @@ def approve_plan(
         # Renew
         result = renew_plan(
             student_id=plan["student_id"],
-            new_installment_amount=float(plan["amount"]),
+            new_installment_amount=int(plan["amount"]),
             new_plan_end=str(plan["plan_end"]),
-            low_balance_threshold=float(plan["low_balance_threshold"]),
+            low_balance_threshold=int(plan["low_balance_threshold"]),
             plan_start=str(plan["plan_start"])
         )
     else:
         # Create
         result = create_plan(
             student_id=plan["student_id"],
-            installment_amount=float(plan["amount"]),
+            installment_amount=int(plan["amount"]),
             plan_start=str(plan["plan_start"]),
             plan_end=str(plan["plan_end"]),
-            low_balance_threshold=float(plan["low_balance_threshold"])
+            low_balance_threshold=int(plan["low_balance_threshold"])
         )
         
     with get_cursor() as cur:
@@ -415,8 +409,7 @@ def billing_report(_: dict = Depends(require_admin)):
                 bp.plan_start,
                 bp.plan_end,
                 bp.low_balance_threshold,
-                bp.is_active,
-                (bp.installment_amount - bp.balance) AS total_consumed
+                bp.is_active
             FROM students s
             LEFT JOIN billing_plans bp
                 ON bp.student_id = s.id AND bp.is_active = TRUE
@@ -453,7 +446,7 @@ def get_balance(student_id: int, _: dict = Depends(require_staff_or_admin)):
         "data": {
             "student_id": student_id,
             "student_name": student["name"],
-            "balance": float(plan["balance"]) if plan else None,
+            "balance": int(plan["balance"]) if plan else None,
             "plan_end": str(plan["plan_end"]) if plan else None,
             "has_active_plan": plan is not None,
         },
@@ -473,7 +466,7 @@ def adjust_balance(body: AdjustBalanceRequest, _: dict = Depends(require_admin))
         if not plan:
             raise HTTPException(status_code=404, detail="No active billing plan for this student")
 
-        new_balance = float(plan["balance"]) + body.amount
+        new_balance = int(plan["balance"]) + body.amount
         cur.execute(
             "UPDATE billing_plans SET balance = %s WHERE id = %s",
             (new_balance, plan["id"]),

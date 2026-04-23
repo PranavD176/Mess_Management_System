@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import { getCurrentStudent } from '../api'
+import { formatMoney, toMoneyInt } from '../utils/money'
 
 export default function StudentDashboardPage() {
   const navigate = useNavigate()
@@ -60,6 +61,7 @@ export default function StudentDashboardPage() {
 
   const { student, entries, transactions, plans } = studentData
   const activePlan = student.active_plan
+  const activeBalance = activePlan ? (toMoneyInt(activePlan.balance) ?? 0) : null
 
   return (
     <>
@@ -108,14 +110,14 @@ export default function StudentDashboardPage() {
             
             {activePlan && (
               <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                <div style={{ fontSize: 32, fontWeight: 800, color: activePlan.balance > 500 ? 'var(--success)' : 'var(--warning)', marginBottom: 4 }}>
-                  {activePlan.balance != null ? `Rs ${parseFloat(activePlan.balance).toFixed(2)}` : 'No Plan'}
+                <div style={{ fontSize: 32, fontWeight: 800, color: activeBalance > 500 ? 'var(--success)' : 'var(--warning)', marginBottom: 4 }}>
+                  {activePlan.balance != null ? formatMoney(activePlan.balance) : 'No Plan'}
                 </div>
                 <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>
                   Current Balance
                 </div>
-                <div className={`badge ${activePlan.balance > 500 ? 'badge-success' : 'badge-warning'}`} style={{ marginTop: 8 }}>
-                  {activePlan.balance > 500 ? 'Sufficient' : 'Low Balance'}
+                <div className={`badge ${activeBalance > 500 ? 'badge-success' : 'badge-warning'}`} style={{ marginTop: 8 }}>
+                  {activeBalance > 500 ? 'Sufficient' : 'Low Balance'}
                 </div>
               </div>
             )}
@@ -274,7 +276,7 @@ export default function StudentDashboardPage() {
                               </span>
                             </td>
                             <td style={{ color: 'var(--danger)', fontWeight: 600 }}>
-                              -Rs {meal.amount_deducted}
+                              -{formatMoney(meal.amount_deducted, '₹0')}
                             </td>
                             <td style={{ fontSize: 14, color: 'var(--text-secondary)' }}>
                               {meal.recorded_by}
@@ -327,13 +329,13 @@ export default function StudentDashboardPage() {
                               </span>
                             </td>
                             <td style={{ 
-                              color: txn.amount < 0 ? 'var(--danger)' : 'var(--success)', 
+                              color: (toMoneyInt(txn.amount) ?? 0) < 0 ? 'var(--danger)' : 'var(--success)', 
                               fontWeight: 600 
                             }}>
-                              {txn.amount < 0 ? '-' : '+'}Rs {Math.abs(txn.amount)}
+                              {(toMoneyInt(txn.amount) ?? 0) < 0 ? '-' : '+'}{formatMoney(Math.abs(toMoneyInt(txn.amount) ?? 0), '₹0')}
                             </td>
                             <td style={{ fontSize: 14, color: 'var(--text-secondary)' }}>
-                              Rs {txn.balance_after}
+                              {formatMoney(txn.balance_after, '₹0')}
                             </td>
                           </tr>
                         ))}
@@ -384,16 +386,16 @@ export default function StudentDashboardPage() {
                               </span>
                             </td>
                             <td style={{ fontSize: 14, color: 'var(--text-secondary)' }}>
-                              Rs {plan.installment_amount}
+                              {formatMoney(plan.installment_amount, '₹0')}
                             </td>
                             <td style={{ 
-                              color: plan.balance < 500 ? 'var(--warning)' : 'var(--text-secondary)', 
+                              color: (toMoneyInt(plan.balance) ?? 0) < 500 ? 'var(--warning)' : 'var(--text-secondary)', 
                               fontWeight: 600 
                             }}>
-                              Rs {plan.balance}
+                              {formatMoney(plan.balance, '₹0')}
                             </td>
                             <td style={{ fontSize: 14, color: 'var(--text-secondary)' }}>
-                              Rs {plan.low_balance_threshold}
+                              {formatMoney(plan.low_balance_threshold, '₹500')}
                             </td>
                           </tr>
                         ))}

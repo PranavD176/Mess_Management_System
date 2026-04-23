@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import { getMonthlyReport } from '../api'
+import { formatMoney, toMoneyInt } from '../utils/money'
 
 export default function MonthlyReportPage() {
   const navigate = useNavigate()
@@ -32,7 +33,7 @@ export default function MonthlyReportPage() {
   ) || []
 
   const totalMeals  = filtered.reduce((a, s) => a + (s.total_meals  || 0), 0)
-  const totalAmount = filtered.reduce((a, s) => a + parseFloat(s.total_amount || 0), 0)
+  const totalAmount = filtered.reduce((a, s) => a + (toMoneyInt(s.total_amount) ?? 0), 0)
 
   const years = Array.from({ length: 5 }, (_, i) => String(now.getFullYear() - i))
 
@@ -96,7 +97,7 @@ export default function MonthlyReportPage() {
               <div className="stat-card">
                 <div className="stat-icon">💰</div>
                 <div className="stat-label">Total Collected</div>
-                <div className="stat-value" style={{ fontSize: 22 }}>₹{totalAmount.toFixed(0)}</div>
+                <div className="stat-value" style={{ fontSize: 22 }}>{formatMoney(totalAmount, '₹0')}</div>
               </div>
             </div>
 
@@ -150,7 +151,7 @@ export default function MonthlyReportPage() {
                             </div>
                           </td>
                           <td className="text-muted">{s.total_meals ? (s.total_meals / 30).toFixed(1) : '0'}/day</td>
-                          <td><strong style={{ color: 'var(--success)' }}>₹{parseFloat(s.total_amount || 0).toFixed(2)}</strong></td>
+                          <td><strong style={{ color: 'var(--success)' }}>{formatMoney(s.total_amount, '₹0')}</strong></td>
                           <td>
                             <button className="btn btn-ghost btn-sm" onClick={() => navigate(`/students/${s.student_id}`)}>
                               View →
@@ -164,7 +165,7 @@ export default function MonthlyReportPage() {
                         <td colSpan={2}><strong style={{ color: 'var(--text-primary)' }}>Totals</strong></td>
                         <td><strong>{totalMeals}</strong></td>
                         <td>—</td>
-                        <td><strong style={{ color: 'var(--success)' }}>₹{totalAmount.toFixed(2)}</strong></td>
+                        <td><strong style={{ color: 'var(--success)' }}>{formatMoney(totalAmount, '₹0')}</strong></td>
                         <td />
                       </tr>
                     </tfoot>

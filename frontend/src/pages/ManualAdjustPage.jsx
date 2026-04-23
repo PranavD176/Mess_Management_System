@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import toast from 'react-hot-toast'
 import { listStudents, adjustBalance } from '../api'
+import { formatMoney, toMoneyInt } from '../utils/money'
 
 export default function ManualAdjustPage() {
   const [students, setStudents]   = useState([])
@@ -19,33 +20,35 @@ export default function ManualAdjustPage() {
   useEffect(() => {
     if (!form.student_id) { setCurrentBalance(null); return }
     const s = students.find(s => s.id === parseInt(form.student_id))
-    if (s) setCurrentBalance(s.balance != null ? parseFloat(s.balance) : null)
+    if (s) setCurrentBalance(toMoneyInt(s.balance))
   }, [form.student_id, students])
 
   const selected = students.find(s => s.id === parseInt(form.student_id))
+  const amountValue = toMoneyInt(form.amount)
   const previewBalance = currentBalance != null && form.amount
-    ? currentBalance + parseFloat(form.amount || 0)
+    ? currentBalance + (amountValue ?? 0)
     : null
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+    const adjustmentAmount = toMoneyInt(form.amount)
     if (!form.student_id) { toast.error('Select a student'); return }
-    if (!form.amount || parseFloat(form.amount) === 0) { toast.error('Enter a non-zero amount'); return }
+    if (adjustmentAmount == null || adjustmentAmount === 0) { toast.error('Enter a non-zero amount'); return }
     if (!form.note.trim()) { toast.error('Add a note explaining the adjustment'); return }
 
     setSaving(true)
     try {
       const data = await adjustBalance({
         student_id: parseInt(form.student_id),
-        amount: parseFloat(form.amount),
+        amount: adjustmentAmount,
         note: form.note.trim(),
       })
 
-      const newBalance = parseFloat(data.new_balance)
-      const adjAmount  = parseFloat(data.adjustment_amount)
+      const newBalance = toMoneyInt(data.new_balance) ?? 0
+      const adjAmount  = toMoneyInt(data.adjustment_amount) ?? 0
 
       toast.success(
-        `${adjAmount > 0 ? '✅ Payment' : '⚠️ Deduction'} of ₹${Math.abs(adjAmount).toFixed(2)} recorded. Balance: ₹${newBalance.toFixed(2)}`
+        `${adjAmount > 0 ? '✅ Payment' : '⚠️ Deduction'} of ₹${Math.abs(adjAmount)} recorded. Balance: ₹${newBalance}`
       )
 
       // Update balance in the local students list immediately (no refetch needed)
@@ -73,8 +76,8 @@ export default function ManualAdjustPage() {
     }
   }
 
-  const isCredit = parseFloat(form.amount) > 0
-  const isDeduct = parseFloat(form.amount) < 0
+  const isCredit = (amountValue ?? 0) > 0
+  const isDeduct = (amountValue ?? 0) < 0
   const balColor = (bal) =>
     bal == null ? 'var(--text-muted)' : bal < 0 ? 'var(--danger)' : bal < 500 ? 'var(--warning)' : 'var(--success)'
 
@@ -109,7 +112,7 @@ export default function ManualAdjustPage() {
                   <option value="">Select a student…</option>
                   {students.map(s => (
                     <option key={s.id} value={s.id}>
-                      {s.name} ({s.roll_no}) — {s.balance != null ? `₹${parseFloat(s.balance).toFixed(2)}` : 'No plan'}
+                      {s.name} ({s.roll_no}) — {formatMoney(s.balance, 'No plan')}
                     </option>
                   ))}
                 </select>
@@ -124,7 +127,7 @@ export default function ManualAdjustPage() {
                 }}>
                   <span className="text-muted">Current Balance</span>
                   <span className="font-bold" style={{ color: balColor(currentBalance), fontSize: 16 }}>
-                    {currentBalance != null ? `₹${currentBalance.toFixed(2)}` : 'No plan'}
+                    {formatMoney(currentBalance, 'No plan')}
                   </span>
                 </div>
               )}
@@ -135,7 +138,7 @@ export default function ManualAdjustPage() {
                   id="adj-amount"
                   className="form-input"
                   type="number"
-                  step="0.01"
+                  step="1"
                   placeholder="e.g. 1000 for payment · -200 for deduction"
                   value={form.amount}
                   onChange={e => setForm({ ...form, amount: e.target.value })}
@@ -149,7 +152,7 @@ export default function ManualAdjustPage() {
                     </span>
                     {previewBalance != null && (
                       <span style={{ color: balColor(previewBalance) }}>
-                        → <strong>₹{previewBalance.toFixed(2)}</strong> after
+                        → <strong>{formatMoney(previewBalance, '₹0')}</strong> after
                       </span>
                     )}
                   </div>
@@ -196,14 +199,14 @@ export default function ManualAdjustPage() {
                   <div className="flex justify-between">
                     <span className="text-muted">Current Balance</span>
                     <span className="font-bold" style={{ color: balColor(currentBalance), fontSize: 18 }}>
-                      {currentBalance != null ? `₹${currentBalance.toFixed(2)}` : 'No plan'}
+                      {formatMoney(currentBalance, 'No plan')}
                     </span>
                   </div>
                   {previewBalance != null && form.amount && (
                     <div className="flex justify-between">
                       <span className="text-muted">Balance After</span>
                       <span className="font-bold" style={{ color: balColor(previewBalance), fontSize: 18 }}>
-                        ₹{previewBalance.toFixed(2)}
+                        {formatMoney(previewBalance, '₹0')}
                       </span>
                     </div>
                   )}
@@ -225,12 +228,12 @@ export default function ManualAdjustPage() {
                       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 2 }}>
                         <span className="font-bold">{h.studentName}</span>
                         <span className="font-bold" style={{ color: h.amount > 0 ? 'var(--success)' : 'var(--danger)' }}>
-                          {h.amount > 0 ? '+' : ''}₹{Math.abs(h.amount).toFixed(2)}
+                          {h.amount > 0 ? '+' : ''}₹{Math.abs(h.amount)}
                         </span>
                       </div>
                       <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                         <span className="text-muted">{h.note}</span>
-                        <span className="text-muted">→ ₹{h.newBalance.toFixed(2)}</span>
+                        <span className="text-muted">→ ₹{h.newBalance}</span>
                       </div>
                     </div>
                   ))}

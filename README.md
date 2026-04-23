@@ -19,6 +19,10 @@ A full-stack web application for college mess management using QR codes, FastAPI
 2. Run the contents of `db/schema.sql`
 3. Your tables and seed data (meal slots) are now created
 
+If you already have existing data created with decimal amounts, run this one-time migration after schema updates:
+
+4. Run `backend/db/convert_money_columns_to_integer.sql` to convert existing money values to integer rupees
+
 ---
 
 ## 2. Backend Setup
@@ -164,5 +168,6 @@ Full interactive docs: **http://localhost:8000/docs**
 
 - **QR Scanning** requires Chrome 88+ (for BarcodeDetector API) on localhost
 - All amounts are in Indian Rupees (₹)
+- Money values are stored and shown as integer rupees (no decimals)
 - No student-facing login — only admin and staff accounts
 - Runs on localhost only — no deployment needed for college use

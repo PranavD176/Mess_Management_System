@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import { getStudent, createBillingPlan, createMyPlan, renewBillingPlan, renewMyPlan, getCurrentStudent, submitPendingPlan } from '../api'
+import { formatMoney, toMoneyInt } from '../utils/money'
 
 export default function CreatePlanPage() {
   const { id } = useParams()
@@ -70,13 +71,15 @@ export default function CreatePlanPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+    const installmentAmount = toMoneyInt(form.installment_amount)
+    const thresholdAmount = toMoneyInt(form.low_balance_threshold) ?? 500
     
     if (!feeReceipt) {
       toast.error('Please upload fee receipt PDF (mandatory)')
       return
     }
     
-    if (!form.installment_amount || parseFloat(form.installment_amount) <= 0) {
+    if (installmentAmount == null || installmentAmount <= 0) {
       toast.error('Please enter a valid amount')
       return
     }
@@ -87,10 +90,10 @@ export default function CreatePlanPage() {
       const formData = new FormData()
       formData.append('fee_receipt', feeReceipt)
       formData.append('student_id', student.id)
-      formData.append('amount', form.installment_amount)
+      formData.append('amount', String(installmentAmount))
       formData.append('plan_start', form.plan_start)
       formData.append('plan_end', form.plan_end)
-      formData.append('low_balance_threshold', form.low_balance_threshold)
+      formData.append('low_balance_threshold', String(thresholdAmount))
 
       await submitPendingPlan(formData)
       toast.success('Plan submitted for admin approval! You will be notified once reviewed.')
@@ -110,8 +113,8 @@ export default function CreatePlanPage() {
 
   if (loading) return <div className="page-body"><div className="spinner" /></div>
 
-  const carryForward = isRenewal ? parseFloat(renewal.balance) : 0
-  const newBalance = (parseFloat(form.installment_amount) || 0) + carryForward
+  const carryForward = isRenewal ? (toMoneyInt(renewal.balance) ?? 0) : 0
+  const newBalance = (toMoneyInt(form.installment_amount) ?? 0) + carryForward
 
   return (
     <>
@@ -138,7 +141,7 @@ export default function CreatePlanPage() {
                   <div style={{ fontWeight: 700, marginBottom: 4 }}>Previous Plan Balance</div>
                   <div style={{ fontSize: 13 }}>
                     Current balance: <strong style={{ color: carryForward < 0 ? 'var(--danger)' : 'var(--success)' }}>
-                      {carryForward < 0 ? `- ₹${Math.abs(carryForward).toFixed(2)} (debt)` : `₹${carryForward.toFixed(2)}`}
+                      {carryForward < 0 ? `- ₹${Math.abs(carryForward)} (debt)` : `₹${carryForward}`}
                     </strong>.
                     Payment received will settle this {carryForward < 0 ? 'debt' : 'and add credit'}.
                   </div>
@@ -187,7 +190,7 @@ export default function CreatePlanPage() {
                   id="plan-amount"
                   className="form-input"
                   type="number"
-                  step="0.01"
+                  step="1"
                   min="0"
                   placeholder="e.g. 22000"
                   value={form.installment_amount}
@@ -243,13 +246,13 @@ export default function CreatePlanPage() {
               <div style={{ display: 'flex', flexDirection: 'column', gap: 12, fontSize: 14 }}>
                 <div className="flex justify-between">
                   <span className="text-muted">{isRenewal ? 'Payment Received' : 'Expected Payment'}</span>
-                  <span className="font-bold">₹{parseFloat(form.installment_amount || 0).toFixed(2)}</span>
+                  <span className="font-bold">{formatMoney(form.installment_amount, '₹0')}</span>
                 </div>
                 {isRenewal && (
                   <div className="flex justify-between">
                     <span className="text-muted">{carryForward < 0 ? '⚠️ Outstanding Debt' : 'Credit carry-over'}</span>
                     <span className="font-bold" style={{ color: carryForward < 0 ? 'var(--danger)' : 'var(--accent)' }}>
-                      {carryForward < 0 ? `- ₹${Math.abs(carryForward).toFixed(2)}` : `+ ₹${carryForward.toFixed(2)}`}
+                      {carryForward < 0 ? `- ₹${Math.abs(carryForward)}` : `+ ₹${carryForward}`}
                     </span>
                   </div>
                 )}
@@ -257,9 +260,9 @@ export default function CreatePlanPage() {
                 <div className="flex justify-between">
                   <span className="text-muted">Opening Balance</span>
                   {isRenewal ? (
-                    <span className="font-bold" style={{ color: newBalance < 0 ? 'var(--danger)' : 'var(--success)', fontSize: 18 }}>₹{newBalance.toFixed(2)}</span>
+                    <span className="font-bold" style={{ color: newBalance < 0 ? 'var(--danger)' : 'var(--success)', fontSize: 18 }}>{formatMoney(newBalance, '₹0')}</span>
                   ) : (
-                    <span className="font-bold text-success" style={{ fontSize: 18 }}>₹{newBalance.toFixed(2)}</span>
+                    <span className="font-bold text-success" style={{ fontSize: 18 }}>{formatMoney(newBalance, '₹0')}</span>
                   )}
                 </div>
                 <div className="flex justify-between">
@@ -268,7 +271,7 @@ export default function CreatePlanPage() {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted">Low Balance Alert</span>
-                  <span>₹{form.low_balance_threshold}</span>
+                  <span>{formatMoney(form.low_balance_threshold, '₹500')}</span>
                 </div>
               </div>
             </div>
@@ -277,8 +280,8 @@ export default function CreatePlanPage() {
               <div className="card mt-4" style={{ background: 'var(--bg-card)' }}>
                 <div className="card-title">📜 Previous Plan</div>
                 <div style={{ fontSize: 13, display: 'flex', flexDirection: 'column', gap: 6 }}>
-                  <div className="flex justify-between"><span className="text-muted">Installment Paid</span><span>₹{parseFloat(renewal.installment_amount).toFixed(2)}</span></div>
-                  <div className="flex justify-between"><span className="text-muted">Remaining</span><span className="text-warning font-bold">₹{parseFloat(renewal.balance).toFixed(2)}</span></div>
+                  <div className="flex justify-between"><span className="text-muted">Installment Paid</span><span>{formatMoney(renewal.installment_amount, '₹0')}</span></div>
+                  <div className="flex justify-between"><span className="text-muted">Remaining</span><span className="text-warning font-bold">{formatMoney(renewal.balance, '₹0')}</span></div>
                   <div className="flex justify-between"><span className="text-muted">Period</span><span>{renewal.plan_start} → {renewal.plan_end}</span></div>
                 </div>
               </div>

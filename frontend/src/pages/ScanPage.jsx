@@ -3,6 +3,7 @@ import jsQR from 'jsqr'
 import toast from 'react-hot-toast'
 import { scanMeal } from '../api'
 import { useAuth } from '../context/AuthContext'
+import { formatMoney, toMoneyInt } from '../utils/money'
 
 const MEAL_ICONS = { breakfast: '🌅', lunch: '☀️', dinner: '🌙' }
 
@@ -109,6 +110,8 @@ export default function ScanPage() {
     setManualId('')
   }
 
+  const remainingBalance = result ? toMoneyInt(result.balance_remaining) : null
+
   return (
     <>
       <div className="page-header">
@@ -186,12 +189,12 @@ export default function ScanPage() {
                     </div>
                     <div className="scan-result-row">
                       <span className="label">Amount Deducted</span>
-                      <span className="value text-danger">- ₹{result.amount_deducted}</span>
+                      <span className="value text-danger">- {formatMoney(result.amount_deducted, '₹0')}</span>
                     </div>
                     <div className="scan-result-row">
                       <span className="label">Remaining Balance</span>
-                      <span className={`value ${result.balance_remaining > 500 ? 'text-success' : 'text-warning'}`}>
-                        {result.balance_remaining != null ? `₹${parseFloat(result.balance_remaining).toFixed(2)}` : 'No plan'}
+                      <span className={`value ${remainingBalance > 500 ? 'text-success' : 'text-warning'}`}>
+                        {remainingBalance != null ? formatMoney(remainingBalance) : 'No plan'}
                       </span>
                     </div>
                     {result.warning && (

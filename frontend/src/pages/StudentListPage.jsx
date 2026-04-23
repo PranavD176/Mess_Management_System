@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { listStudents } from '../api'
+import { toMoneyInt } from '../utils/money'
 
 export default function StudentListPage() {
   const navigate = useNavigate()
@@ -20,7 +21,7 @@ export default function StudentListPage() {
   )
 
   // Treat null balance (no plan) as ₹0 for display purposes
-  const displayBalance = (b) => b != null ? parseFloat(b) : 0
+  const displayBalance = (b) => toMoneyInt(b) ?? 0
 
   const balanceColor = (b) => {
     const v = displayBalance(b)
@@ -198,10 +199,10 @@ export default function StudentListPage() {
                             borderRadius: '50%',
                             background: balanceColor(s.balance)
                           }} />
-                          {displayBalance(s.balance).toFixed(2)}
+                          ₹{displayBalance(s.balance)}
                         </div>
                         <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 2 }}>
-                          {s.balance < 0 ? 'Overdrawn' : s.balance === 0 ? 'No balance' : 'Available'}
+                          {displayBalance(s.balance) < 0 ? 'Overdrawn' : displayBalance(s.balance) === 0 ? 'No balance' : 'Available'}
                         </div>
                       </td>
                       <td>

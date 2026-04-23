@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getBillingReport } from '../api'
+import { formatMoney, toMoneyInt } from '../utils/money'
 
 export default function BillingReportPage() {
   const navigate = useNavigate()
@@ -13,36 +14,46 @@ export default function BillingReportPage() {
     getBillingReport().then(setReport).catch(console.error).finally(() => setLoading(false))
   }, [])
 
+  const balanceValue = (r) => toMoneyInt(r.balance)
+  const thresholdValue = (r) => toMoneyInt(r.low_balance_threshold) ?? 500
+
   const filtered = report
     .filter(r =>
       r.name.toLowerCase().includes(search.toLowerCase()) ||
       r.roll_no.toLowerCase().includes(search.toLowerCase())
     )
     .sort((a, b) => {
-      if (sortBy === 'balance') return (a.balance ?? Infinity) - (b.balance ?? Infinity)
+      if (sortBy === 'balance') return (balanceValue(a) ?? Infinity) - (balanceValue(b) ?? Infinity)
       if (sortBy === 'name') return a.name.localeCompare(b.name)
       if (sortBy === 'expiry') return new Date(a.plan_end || '9999') - new Date(b.plan_end || '9999')
       return 0
     })
 
-  const exhausted = report.filter(r => r.balance != null && r.balance <= 0)
-  const low       = report.filter(r => r.balance != null && r.balance > 0 && r.balance < (r.low_balance_threshold || 500))
+  const exhausted = report.filter(r => balanceValue(r) != null && balanceValue(r) <= 0)
+  const low = report.filter(r => {
+    const balance = balanceValue(r)
+    return balance != null && balance > 0 && balance < thresholdValue(r)
+  })
   const expired   = report.filter(r => r.plan_end && new Date(r.plan_end) < new Date())
   const noplan    = report.filter(r => r.is_active == null || !r.is_active)
 
   const rowClass = (r) => {
+    const balance = balanceValue(r)
+    const threshold = thresholdValue(r)
     if (r.is_active == null || !r.is_active) return ''
-    if (r.balance != null && r.balance <= 0) return 'row-danger'
-    if (r.balance != null && r.balance < (r.low_balance_threshold || 500)) return 'row-warning'
+    if (balance != null && balance <= 0) return 'row-danger'
+    if (balance != null && balance < threshold) return 'row-warning'
     if (r.plan_end && new Date(r.plan_end) < new Date()) return 'row-danger'
     return ''
   }
 
   const balColor = (r) => {
+    const balance = balanceValue(r)
+    const threshold = thresholdValue(r)
     if (r.is_active == null || !r.is_active) return 'var(--text-muted)'
-    if (r.balance == null) return 'var(--text-muted)'
-    if (r.balance <= 0) return 'var(--danger)'
-    if (r.balance < (r.low_balance_threshold || 500)) return 'var(--warning)'
+    if (balance == null) return 'var(--text-muted)'
+    if (balance <= 0) return 'var(--danger)'
+    if (balance < threshold) return 'var(--warning)'
     return 'var(--success)'
   }
 
@@ -134,7 +145,6 @@ export default function BillingReportPage() {
                     <th>Balance</th>
                     <th>Threshold</th>
                     <th>Installment</th>
-                    <th>Consumed</th>
                     <th>Plan Expiry</th>
                     <th>Status</th>
                     <th>Action</th>
@@ -147,14 +157,13 @@ export default function BillingReportPage() {
                       <td><span className="badge badge-muted">{r.roll_no}</span></td>
                       <td>
                         <span style={{ color: balColor(r), fontWeight: 700, fontSize: 15 }}>
-                          {r.balance != null ? `₹${parseFloat(r.balance).toFixed(2)}` : '—'}
+                          {formatMoney(r.balance)}
                         </span>
                       </td>
                       <td className="text-muted text-sm">
-                        {r.low_balance_threshold ? `₹${r.low_balance_threshold}` : '—'}
+                        {formatMoney(r.low_balance_threshold)}
                       </td>
-                      <td>{r.installment_amount ? `₹${parseFloat(r.installment_amount).toFixed(0)}` : '—'}</td>
-                      <td>{r.total_consumed != null ? `₹${parseFloat(r.total_consumed).toFixed(0)}` : '—'}</td>
+                      <td>{formatMoney(r.installment_amount)}</td>
                       <td>
                         {r.plan_end
                           ? new Date(r.plan_end) < new Date()
@@ -166,9 +175,9 @@ export default function BillingReportPage() {
                       <td>
                         {!r.is_active
                           ? <span className="badge badge-muted">No Plan</span>
-                          : r.balance <= 0
+                          : (balanceValue(r) ?? 0) <= 0
                           ? <span className="badge badge-danger">Exhausted</span>
-                          : r.balance < (r.low_balance_threshold || 500)
+                          : (balanceValue(r) ?? 0) < thresholdValue(r)
                           ? <span className="badge badge-warning">Low</span>
                           : <span className="badge badge-success">Healthy</span>
                         }

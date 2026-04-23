@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { getStudentFull } from '../api'
+import { formatMoney, toMoneyInt } from '../utils/money'
 
 const MEAL_ICONS = { breakfast: '🌅', lunch: '☀️', dinner: '🌙' }
 const TXN_COLOR  = { deduction: 'var(--danger)', installment: 'var(--success)', carry_forward: 'var(--accent)', adjustment: 'var(--warning)' }
@@ -53,7 +54,7 @@ export default function StudentDetailPage() {
 
   const { student, entries, plans, transactions, qr_base64 } = data
   const plan = student.active_plan
-  const balAmt = plan ? parseFloat(plan.balance) : null
+  const balAmt = plan ? toMoneyInt(plan.balance) : null
   const balColor = balAmt == null ? 'var(--text-muted)'
     : balAmt < 0   ? 'var(--danger)'
     : balAmt < 500 ? 'var(--warning)'
@@ -89,7 +90,7 @@ export default function StudentDetailPage() {
           <div className="stat-card">
             <div className="stat-label">Current Balance</div>
             <div className="stat-value" style={{ color: balColor }}>
-              {balAmt != null ? `₹${balAmt.toFixed(2)}` : '—'}
+              {formatMoney(balAmt)}
             </div>
             <div className="stat-sub">
               {balAmt == null  ? 'No active plan'
@@ -105,13 +106,13 @@ export default function StudentDetailPage() {
           </div>
           <div className="stat-card">
             <div className="stat-label">Installment Paid</div>
-            <div className="stat-value" style={{ fontSize: 20 }}>{plan ? `₹${parseFloat(plan.installment_amount).toFixed(0)}` : '—'}</div>
+            <div className="stat-value" style={{ fontSize: 20 }}>{plan ? formatMoney(plan.installment_amount) : '—'}</div>
             <div className="stat-sub">This plan period</div>
           </div>
           <div className="stat-card">
             <div className="stat-label">Total Consumed</div>
             <div className="stat-value" style={{ fontSize: 20 }}>
-              {plan ? `₹${(parseFloat(plan.installment_amount) - parseFloat(plan.balance)).toFixed(0)}` : '—'}
+              {plan ? formatMoney((toMoneyInt(plan.installment_amount) ?? 0) - (toMoneyInt(plan.balance) ?? 0)) : '—'}
             </div>
             <div className="stat-sub">{entries.length} meals (last 30)</div>
           </div>
@@ -153,7 +154,7 @@ export default function StudentDetailPage() {
                             <td className="text-muted text-sm">#{e.id}</td>
                             <td><span>{MEAL_ICONS[e.meal_type]} </span><span className="badge badge-info">{e.meal_type}</span></td>
                             <td>{new Date(e.entry_time).toLocaleString('en-IN')}</td>
-                            <td className="text-danger font-bold">- ₹{e.amount_deducted}</td>
+                            <td className="text-danger font-bold">- ₹{toMoneyInt(e.amount_deducted) ?? 0}</td>
                             <td className="text-muted text-sm">{e.recorded_by || '—'}</td>
                           </tr>
                         ))}
@@ -174,10 +175,10 @@ export default function StudentDetailPage() {
                           <tr key={t.id}>
                             <td className="text-muted text-sm">#{t.id}</td>
                             <td><span className="badge badge-muted" style={{ color: TXN_COLOR[t.transaction_type] }}>{t.transaction_type}</span></td>
-                            <td style={{ color: parseFloat(t.amount) < 0 ? 'var(--danger)' : 'var(--success)', fontWeight: 700 }}>
-                              {parseFloat(t.amount) >= 0 ? '+' : ''}₹{Math.abs(t.amount).toFixed(2)}
+                            <td style={{ color: (toMoneyInt(t.amount) ?? 0) < 0 ? 'var(--danger)' : 'var(--success)', fontWeight: 700 }}>
+                              {(toMoneyInt(t.amount) ?? 0) >= 0 ? '+' : ''}₹{Math.abs(toMoneyInt(t.amount) ?? 0)}
                             </td>
-                            <td className="font-bold">₹{parseFloat(t.balance_after).toFixed(2)}</td>
+                            <td className="font-bold">{formatMoney(t.balance_after, '₹0')}</td>
                             <td className="text-muted text-sm">{t.note || (t.meal_entry_id ? `Meal #${t.meal_entry_id}` : '—')}</td>
                             <td className="text-sm">{new Date(t.created_at).toLocaleString('en-IN')}</td>
                           </tr>
@@ -198,9 +199,9 @@ export default function StudentDetailPage() {
                         {plans.map(p => (
                           <tr key={p.id}>
                             <td className="text-muted text-sm">#{p.id}</td>
-                            <td className="font-bold">₹{parseFloat(p.installment_amount).toFixed(2)}</td>
-                            <td style={{ color: parseFloat(p.balance) < 500 ? 'var(--warning)' : 'var(--success)', fontWeight: 700 }}>
-                              ₹{parseFloat(p.balance).toFixed(2)}
+                            <td className="font-bold">{formatMoney(p.installment_amount, '₹0')}</td>
+                            <td style={{ color: (toMoneyInt(p.balance) ?? 0) < 500 ? 'var(--warning)' : 'var(--success)', fontWeight: 700 }}>
+                              {formatMoney(p.balance, '₹0')}
                             </td>
                             <td>{p.plan_start}</td>
                             <td>{p.plan_end}</td>

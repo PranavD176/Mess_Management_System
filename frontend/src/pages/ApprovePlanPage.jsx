@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import { getPendingPlans, approvePlan, rejectPlan } from '../api'
+import { formatMoney } from '../utils/money'
 
 export default function ApprovePlanPage() {
   const navigate = useNavigate()
@@ -115,7 +116,7 @@ export default function ApprovePlanPage() {
                       <div className="plan-roll">{plan.roll_no}</div>
                     </div>
                     <div className="plan-details">
-                      <div className="plan-amount">₹ {plan.amount}</div>
+                      <div className="plan-amount">{formatMoney(plan.amount, '₹0')}</div>
                       <div className="plan-date">
                         {new Date(plan.created_at).toLocaleDateString()}
                       </div>
@@ -165,7 +166,7 @@ export default function ApprovePlanPage() {
                   <div className="info-grid">
                     <div className="info-item">
                       <span className="info-label">Amount:</span>
-                      <span className="info-value amount">₹ {selectedPlan.amount}</span>
+                      <span className="info-value amount">{formatMoney(selectedPlan.amount, '₹0')}</span>
                     </div>
                     <div className="info-item">
                       <span className="info-label">Plan Start:</span>
@@ -177,7 +178,7 @@ export default function ApprovePlanPage() {
                     </div>
                     <div className="info-item">
                       <span className="info-label">Low Balance Threshold:</span>
-                      <span className="info-value">₹ {selectedPlan.low_balance_threshold}</span>
+                      <span className="info-value">{formatMoney(selectedPlan.low_balance_threshold, '₹500')}</span>
                     </div>
                   </div>
                 </div>
@@ -197,7 +198,7 @@ export default function ApprovePlanPage() {
                       </a>
                     </div>
                     <div className="receipt-note mt-2">
-                      Please verify the amount in the PDF matches the requested amount (₹{selectedPlan.amount})
+                      Please verify the amount in the PDF matches the requested amount ({formatMoney(selectedPlan.amount, '₹0')})
                     </div>
                   </div>
                 </div>
