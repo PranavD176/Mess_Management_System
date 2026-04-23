@@ -207,9 +207,9 @@ export default function StudentDashboardPage() {
             marginBottom: 0
           }}>
             {[
-              { id: 'meals', label: 'Meals', count: entries?.length || 0, icon: 'Meals' },
-              { id: 'transactions', label: 'Transactions', count: transactions?.length || 0, icon: 'Transactions' },
-              { id: 'plans', label: 'Plans', count: plans?.length || 0, icon: 'Plans' }
+              { id: 'meals', label: 'Meals', count: entries?.length || 0, icon: '' },
+              { id: 'transactions', label: 'Transactions', count: transactions?.length || 0, icon: '' },
+              { id: 'plans', label: 'Plans', count: plans?.length || 0, icon: '' }
             ].map((tab) => (
               <button
                 key={tab.id}
