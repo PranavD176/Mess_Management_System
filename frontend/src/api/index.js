@@ -116,4 +116,7 @@ export const rejectPlan = (planId, adminNotes) =>
 export const getPlanStatus = (studentId) =>
   api.get(`/billing/plan-status/${studentId}`).then((r) => r.data.data)
 
+export const getMyPlanStatus = () =>
+  api.get('/billing/my-plan-status').then((r) => r.data.data)
+
 export default api

@@ -1,5 +1,7 @@
 import { NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import { useState, useEffect } from 'react'
+import { getMyPlanStatus } from '../api'
 
 const adminLinks = [
   { to: '/scan',             icon: '📷', label: 'Scan QR Code' },
@@ -24,7 +26,20 @@ const studentLinks = [
 export default function Sidebar() {
   const { role, username, logout } = useAuth()
   const navigate = useNavigate()
+  const [planStatus, setPlanStatus] = useState(null)
   const links = role === 'admin' ? adminLinks : role === 'staff' ? staffLinks : studentLinks
+
+  useEffect(() => {
+    if (role === 'student') {
+      getMyPlanStatus()
+        .then(data => {
+          if (data && data.status) {
+            setPlanStatus(data.status)
+          }
+        })
+        .catch(err => console.error("Failed to load plan status in sidebar:", err))
+    }
+  }, [role])
 
   const handleLogout = () => { logout(); navigate('/login') }
 
@@ -47,6 +62,24 @@ export default function Sidebar() {
           </NavLink>
         ))}
       </nav>
+
+      {planStatus === 'rejected' && (
+        <div style={{ margin: '16px', padding: '16px', background: 'var(--danger-light, #fee2e2)', borderRadius: '8px', border: '1px solid var(--danger, #ef4444)' }}>
+          <div style={{ color: 'var(--danger, #b91c1c)', fontSize: '14px', fontWeight: '600', marginBottom: '8px' }}>
+            ⚠️ Plan Rejected
+          </div>
+          <div style={{ color: 'var(--text-secondary)', fontSize: '12px', marginBottom: '12px' }}>
+            Your recent plan application was not approved. Please reapply.
+          </div>
+          <button 
+            className="btn btn-sm btn-primary" 
+            style={{ width: '100%', background: 'var(--danger, #ef4444)', borderColor: 'var(--danger, #ef4444)' }}
+            onClick={() => navigate('/renew-plan')}
+          >
+            Reapply Now
+          </button>
+        </div>
+      )}
 
       <div className="sidebar-footer">
         <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 8, paddingLeft: 4 }}>
