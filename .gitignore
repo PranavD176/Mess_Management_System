@@ -1,6 +1,7 @@
 # Environments
 .env
 .env.*
+*.env
 !.env.example
 
 # Credentials (plain-text passwords — never commit!)
