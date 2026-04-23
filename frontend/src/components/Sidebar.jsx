@@ -1,5 +1,6 @@
 import { NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import { useTheme } from '../context/ThemeContext'
 import { useState, useEffect } from 'react'
 import { getMyPlanStatus } from '../api'
 
@@ -25,6 +26,7 @@ const studentLinks = [
 
 export default function Sidebar() {
   const { role, username, logout } = useAuth()
+  const { theme, toggleTheme } = useTheme()
   const navigate = useNavigate()
   const [planStatus, setPlanStatus] = useState(null)
   const links = role === 'admin' ? adminLinks : role === 'staff' ? staffLinks : studentLinks
@@ -45,12 +47,21 @@ export default function Sidebar() {
 
   return (
     <aside className="sidebar">
-      <div className="sidebar-logo">
-        <div className="sidebar-logo-icon">🍽️</div>
-        <div>
-          <div className="sidebar-logo-text">MessTrack</div>
-          <div className="sidebar-logo-sub">QR Management System</div>
+      <div className="sidebar-header">
+        <div className="sidebar-logo">
+          <div className="sidebar-logo-icon">🍽️</div>
+          <div>
+            <div className="sidebar-logo-text">MessTrack</div>
+            <div className="sidebar-logo-sub">QR Management System</div>
+          </div>
         </div>
+        <button 
+          className="btn btn-ghost btn-sm theme-toggle-btn" 
+          onClick={toggleTheme}
+          title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} theme`}
+        >
+          {theme === 'dark' ? '☀️' : '🌙'}
+        </button>
       </div>
 
       <nav className="sidebar-nav">
