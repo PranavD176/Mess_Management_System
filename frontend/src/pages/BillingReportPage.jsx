@@ -1,5 +1,14 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import {
+  faFileInvoiceDollar,
+  faTriangleExclamation,
+  faUsers,
+  faClipboardList,
+  faBan,
+  faArrowRight,
+} from '@fortawesome/free-solid-svg-icons'
 import { getBillingReport } from '../api'
 import { formatMoney, toMoneyInt } from '../utils/money'
 
@@ -60,7 +69,7 @@ export default function BillingReportPage() {
   return (
     <>
       <div className="page-header">
-        <h1 className="page-title">💳 Billing Report</h1>
+        <h1 className="page-title"><FontAwesomeIcon icon={faFileInvoiceDollar} style={{ marginRight: 8 }} />Billing Report</h1>
         <p className="page-subtitle">All students sorted by balance — highlights low and exhausted balances</p>
       </div>
 
@@ -68,7 +77,8 @@ export default function BillingReportPage() {
         {/* Alert Summary */}
         {(exhausted.length > 0 || expired.length > 0) && (
           <div className="alert alert-error mb-4">
-            🚨 <strong>{exhausted.length}</strong> student(s) have exhausted balance ·&nbsp;
+            <FontAwesomeIcon icon={faTriangleExclamation} style={{ marginRight: 8 }} />
+            <strong>{exhausted.length}</strong> student(s) have exhausted balance ·&nbsp;
             <strong>{expired.length}</strong> plan(s) have expired — action needed.
           </div>
         )}
@@ -76,29 +86,29 @@ export default function BillingReportPage() {
         {/* Stats */}
         <div className="stat-grid mb-6">
           <div className="stat-card">
-            <div className="stat-icon">👥</div>
+            <div className="stat-icon"><FontAwesomeIcon icon={faUsers} /></div>
             <div className="stat-label">Total Students</div>
             <div className="stat-value">{report.length}</div>
           </div>
           <div className="stat-card">
-            <div className="stat-icon">🚨</div>
+            <div className="stat-icon"><FontAwesomeIcon icon={faTriangleExclamation} /></div>
             <div className="stat-label">Exhausted</div>
             <div className="stat-value" style={{ color: 'var(--danger)' }}>{exhausted.length}</div>
             <div className="stat-sub">Balance ≤ ₹0</div>
           </div>
           <div className="stat-card">
-            <div className="stat-icon">⚠️</div>
+            <div className="stat-icon"><FontAwesomeIcon icon={faTriangleExclamation} /></div>
             <div className="stat-label">Low Balance</div>
             <div className="stat-value" style={{ color: 'var(--warning)' }}>{low.length}</div>
             <div className="stat-sub">Below threshold</div>
           </div>
           <div className="stat-card">
-            <div className="stat-icon">📋</div>
+            <div className="stat-icon"><FontAwesomeIcon icon={faClipboardList} /></div>
             <div className="stat-label">Expired Plans</div>
             <div className="stat-value" style={{ color: 'var(--danger)' }}>{expired.length}</div>
           </div>
           <div className="stat-card">
-            <div className="stat-icon">❌</div>
+            <div className="stat-icon"><FontAwesomeIcon icon={faBan} /></div>
             <div className="stat-label">No Plan</div>
             <div className="stat-value" style={{ color: 'var(--text-muted)' }}>{noplan.length}</div>
           </div>
@@ -108,7 +118,7 @@ export default function BillingReportPage() {
           <div style={{ display: 'flex', gap: 12, marginBottom: 16, flexWrap: 'wrap', alignItems: 'flex-end' }}>
             <input
               className="form-input"
-              placeholder="🔍 Search by name or roll no…"
+              placeholder="Search by name or roll no..."
               value={search}
               onChange={e => setSearch(e.target.value)}
               style={{ maxWidth: 280 }}
@@ -134,7 +144,7 @@ export default function BillingReportPage() {
           {loading ? (
             <div className="loading-indicator"><div className="spinner" /></div>
           ) : filtered.length === 0 ? (
-            <div className="empty-state"><div className="empty-state-icon">💳</div><p>No students found</p></div>
+            <div className="empty-state"><div className="empty-state-icon"><FontAwesomeIcon icon={faFileInvoiceDollar} /></div><p>No students found</p></div>
           ) : (
             <div className="table-wrapper">
               <table>
@@ -167,7 +177,7 @@ export default function BillingReportPage() {
                       <td>
                         {r.plan_end
                           ? new Date(r.plan_end) < new Date()
-                            ? <span className="text-danger text-sm">{r.plan_end} ⚠️</span>
+                            ? <span className="text-danger text-sm">{r.plan_end} <FontAwesomeIcon icon={faTriangleExclamation} /></span>
                             : <span className="text-sm">{r.plan_end}</span>
                           : <span className="text-muted text-sm">—</span>
                         }
@@ -184,7 +194,7 @@ export default function BillingReportPage() {
                       </td>
                       <td>
                         <button className="btn btn-ghost btn-sm" onClick={() => navigate(`/students/${r.student_id}`)}>
-                          View →
+                          View <FontAwesomeIcon icon={faArrowRight} style={{ marginLeft: 6 }} />
                         </button>
                       </td>
                     </tr>

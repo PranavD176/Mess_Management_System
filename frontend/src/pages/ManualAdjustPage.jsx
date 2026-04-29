@@ -1,5 +1,16 @@
 import { useState, useEffect } from 'react'
 import toast from 'react-hot-toast'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import {
+  faScaleBalanced,
+  faFileInvoiceDollar,
+  faSpinner,
+  faTriangleExclamation,
+  faCircleCheck,
+  faUser,
+  faClipboardList,
+  faCircleXmark,
+} from '@fortawesome/free-solid-svg-icons'
 import { listStudents, adjustBalance } from '../api'
 import { formatMoney, toMoneyInt } from '../utils/money'
 
@@ -48,7 +59,7 @@ export default function ManualAdjustPage() {
       const adjAmount  = toMoneyInt(data.adjustment_amount) ?? 0
 
       toast.success(
-        `${adjAmount > 0 ? '✅ Payment' : '⚠️ Deduction'} of ₹${Math.abs(adjAmount)} recorded. Balance: ₹${newBalance}`
+        `${adjAmount > 0 ? 'Payment' : 'Deduction'} of ₹${Math.abs(adjAmount)} recorded. Balance: ₹${newBalance}`
       )
 
       // Update balance in the local students list immediately (no refetch needed)
@@ -84,7 +95,7 @@ export default function ManualAdjustPage() {
   return (
     <>
       <div className="page-header">
-        <h1 className="page-title">⚖️ Manual Balance Adjustment</h1>
+        <h1 className="page-title"><FontAwesomeIcon icon={faScaleBalanced} style={{ marginRight: 8 }} />Manual Balance Adjustment</h1>
         <p className="page-subtitle">Record a payment or manual deduction to a student's account</p>
       </div>
 
@@ -93,7 +104,7 @@ export default function ManualAdjustPage() {
 
           {/* ── Form ── */}
           <div className="card">
-            <div className="card-title">💳 Adjustment Form</div>
+            <div className="card-title"><FontAwesomeIcon icon={faFileInvoiceDollar} style={{ marginRight: 8 }} />Adjustment Form</div>
             <div className="alert alert-info mb-4">
               Use <strong>positive amounts</strong> to add payment (e.g. +1000), <strong>negative amounts</strong> for deductions (e.g. -200).
               You can submit multiple times for the same student.
@@ -148,7 +159,11 @@ export default function ManualAdjustPage() {
                 {form.amount && (
                   <div style={{ fontSize: 12, marginTop: 6, display: 'flex', justifyContent: 'space-between' }}>
                     <span style={{ color: isCredit ? 'var(--success)' : isDeduct ? 'var(--danger)' : 'var(--text-muted)' }}>
-                      {isCredit ? '✅ Payment — balance will increase' : isDeduct ? '❌ Deduction — balance will decrease' : ''}
+                      {isCredit
+                        ? <><FontAwesomeIcon icon={faCircleCheck} style={{ marginRight: 6 }} />Payment - balance will increase</>
+                        : isDeduct
+                          ? <><FontAwesomeIcon icon={faCircleXmark} style={{ marginRight: 6 }} />Deduction - balance will decrease</>
+                          : ''}
                     </span>
                     {previewBalance != null && (
                       <span style={{ color: balColor(previewBalance) }}>
@@ -174,7 +189,11 @@ export default function ManualAdjustPage() {
               </div>
 
               <button type="submit" className="btn btn-primary btn-lg btn-full" disabled={saving}>
-                {saving ? '⏳ Processing…' : isDeduct ? '⚠️ Apply Deduction' : '✅ Record Payment'}
+                {saving
+                  ? <><FontAwesomeIcon icon={faSpinner} spin style={{ marginRight: 8 }} />Processing...</>
+                  : isDeduct
+                    ? <><FontAwesomeIcon icon={faTriangleExclamation} style={{ marginRight: 8 }} />Apply Deduction</>
+                    : <><FontAwesomeIcon icon={faCircleCheck} style={{ marginRight: 8 }} />Record Payment</>}
               </button>
             </form>
           </div>
@@ -185,7 +204,7 @@ export default function ManualAdjustPage() {
             {/* Selected student live preview */}
             {selected && (
               <div className="card">
-                <div className="card-title">👤 {selected.name}</div>
+                <div className="card-title"><FontAwesomeIcon icon={faUser} style={{ marginRight: 8 }} />{selected.name}</div>
                 <div style={{ fontSize: 14, display: 'flex', flexDirection: 'column', gap: 10 }}>
                   <div className="flex justify-between">
                     <span className="text-muted">Roll No</span>
@@ -217,7 +236,7 @@ export default function ManualAdjustPage() {
             {/* Session history */}
             {history.length > 0 && (
               <div className="card">
-                <div className="card-title">📋 This Session</div>
+                <div className="card-title"><FontAwesomeIcon icon={faClipboardList} style={{ marginRight: 8 }} />This Session</div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                   {history.map(h => (
                     <div key={h.id} style={{

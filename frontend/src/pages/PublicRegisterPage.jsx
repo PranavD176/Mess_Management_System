@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import toast from 'react-hot-toast'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faUtensils, faSpinner } from '@fortawesome/free-solid-svg-icons'
 import { registerStudent } from '../api'
 
 export default function PublicRegisterPage() {
@@ -27,14 +29,14 @@ export default function PublicRegisterPage() {
     <div className="login-page">
       <div className="login-card" style={{ maxWidth: 500 }}>
         <div className="login-logo">
-          <div className="login-logo-icon">🍽️</div>
+          <div className="login-logo-icon"><FontAwesomeIcon icon={faUtensils} /></div>
           <h1 className="login-title">Student Registration</h1>
           <p className="login-subtitle">Create your account to access MessTrack</p>
         </div>
 
         {registered ? (
           <div style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: 48, marginBottom: 16 }}>⏳</div>
+            <div style={{ fontSize: 48, marginBottom: 16 }}><FontAwesomeIcon icon={faSpinner} spin /></div>
             <h2 style={{ marginBottom: 16 }}>Registration Submitted!</h2>
             <div style={{ background: 'var(--warning-bg)', border: '1px solid rgba(245,158,11,0.2)', borderRadius: 8, padding: '16px', marginBottom: 24, textAlign: 'left', fontSize: 14 }}>
               <p>Your registration has been submitted successfully and is now pending admin approval.</p>
@@ -127,7 +129,9 @@ export default function PublicRegisterPage() {
             </div>
 
             <button type="submit" className="btn btn-primary btn-full btn-lg" style={{ marginTop: 16 }} disabled={loading}>
-              {loading ? '⏳ Registering…' : '✅ Register Account'}
+              {loading
+                ? <><FontAwesomeIcon icon={faSpinner} spin style={{ marginRight: 8 }} />Registering...</>
+                : 'Register Account'}
             </button>
             
             <div style={{ textAlign: 'center', marginTop: 16 }}>

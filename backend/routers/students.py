@@ -58,6 +58,10 @@ class RegisterStudentRequest(BaseModel):
 def register_student(
     body: RegisterStudentRequest,
 ):
+    roll_no = body.roll_no.strip()
+    if not roll_no:
+        raise HTTPException(status_code=400, detail="Roll number is required")
+
     # Public registration - requires approval
     # Validate course
     valid_courses = ['B.Tech', 'M.Tech', 'MCA', 'Diploma']
@@ -84,7 +88,7 @@ def register_student(
         )
     
     with get_cursor() as cur:
-        cur.execute("SELECT id FROM students WHERE roll_no = %s", (body.roll_no,))
+        cur.execute("SELECT id FROM students WHERE LOWER(roll_no) = LOWER(%s)", (roll_no,))
         if cur.fetchone():
             raise HTTPException(status_code=409, detail="Roll number already registered")
 
@@ -94,7 +98,7 @@ def register_student(
             VALUES (%s, %s, %s, %s, %s, %s)
             RETURNING id, name, roll_no, course, branch, year, is_approved, created_at
             """,
-            (body.name, body.roll_no, body.course, body.branch, body.year, False),
+            (body.name, roll_no, body.course, body.branch, body.year, False),
         )
         student = cur.fetchone()
 
@@ -113,6 +117,10 @@ def register_student_admin(
     body: RegisterStudentRequest,
     _: dict = Depends(require_admin)
 ):
+    roll_no = body.roll_no.strip()
+    if not roll_no:
+        raise HTTPException(status_code=400, detail="Roll number is required")
+
     # Admin registration - immediate approval and full setup
     # Validate course
     valid_courses = ['B.Tech', 'M.Tech', 'MCA', 'Diploma']
@@ -139,7 +147,7 @@ def register_student_admin(
         )
     
     with get_cursor() as cur:
-        cur.execute("SELECT id FROM students WHERE roll_no = %s", (body.roll_no,))
+        cur.execute("SELECT id FROM students WHERE LOWER(roll_no) = LOWER(%s)", (roll_no,))
         if cur.fetchone():
             raise HTTPException(status_code=409, detail="Roll number already registered")
 
@@ -149,7 +157,7 @@ def register_student_admin(
             VALUES (%s, %s, %s, %s, %s, %s)
             RETURNING id, name, roll_no, course, branch, year, is_approved, created_at
             """,
-            (body.name, body.roll_no, body.course, body.branch, body.year, True),
+            (body.name, roll_no, body.course, body.branch, body.year, True),
         )
         student = cur.fetchone()
 
@@ -164,11 +172,11 @@ def register_student_admin(
             VALUES (%s, %s, 'student')
             ON CONFLICT (username) DO NOTHING
             """,
-            (body.roll_no, hash_password(body.roll_no))
+            (roll_no, hash_password(roll_no))
         )
 
     # Save credentials to JSON file
-    save_student_credentials_to_json(body.roll_no, body.name)
+    save_student_credentials_to_json(roll_no, body.name)
 
     qr_base64 = generate_qr_base64(student["id"])
     return {
@@ -293,7 +301,7 @@ def get_current_student_data(current_user: dict = Depends(get_current_user)):
     
     # Find student by username (which is the roll number for students)
     with get_cursor() as cur:
-        cur.execute("SELECT id FROM students WHERE roll_no = %s", (current_user["username"],))
+        cur.execute("SELECT id FROM students WHERE LOWER(roll_no) = LOWER(%s)", (current_user["username"],))
         student_row = cur.fetchone()
         if not student_row:
             raise HTTPException(status_code=404, detail="Student not found")
@@ -424,7 +432,7 @@ def approve_student_registration(student_id: int, _: dict = Depends(require_admi
             VALUES (%s, %s, 'student')
             ON CONFLICT (username) DO NOTHING
             """,
-            (student["roll_no"], hash_password(student["roll_no"]))
+            (student["roll_no"].strip(), hash_password(student["roll_no"].strip()))
         )
     
     # Save credentials to JSON file

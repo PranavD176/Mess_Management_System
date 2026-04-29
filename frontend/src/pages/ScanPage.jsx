@@ -1,11 +1,26 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import jsQR from 'jsqr'
 import toast from 'react-hot-toast'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import {
+  faSun,
+  faCloudSun,
+  faMoon,
+  faTriangleExclamation,
+  faQrcode,
+  faPlay,
+  faStop,
+  faLightbulb,
+  faCircleCheck,
+  faCircleXmark,
+  faSpinner,
+  faKeyboard,
+} from '@fortawesome/free-solid-svg-icons'
 import { scanMeal } from '../api'
 import { useAuth } from '../context/AuthContext'
 import { formatMoney, toMoneyInt } from '../utils/money'
 
-const MEAL_ICONS = { breakfast: '🌅', lunch: '☀️', dinner: '🌙' }
+const MEAL_ICONS = { breakfast: faCloudSun, lunch: faSun, dinner: faMoon }
 
 export default function ScanPage() {
   useAuth()
@@ -89,7 +104,7 @@ export default function ScanPage() {
       const data = await scanMeal(identifier)
       setResult({ ...data, ok: true })
       if (data.warning) {
-        toast(data.warning, { icon: '⚠️', style: { background: '#78350f', color: '#fef3c7' } })
+        toast(data.warning, { icon: <FontAwesomeIcon icon={faTriangleExclamation} />, style: { background: '#78350f', color: '#fef3c7' } })
       } else {
         toast.success(`${data.meal_type} recorded for ${data.student_name}`)
       }
@@ -115,7 +130,7 @@ export default function ScanPage() {
   return (
     <>
       <div className="page-header">
-        <h1 className="page-title">📷 QR Scan</h1>
+        <h1 className="page-title"><FontAwesomeIcon icon={faQrcode} style={{ marginRight: 8 }} />QR Scan</h1>
         <p className="page-subtitle">Point camera at student QR code — meal recorded automatically</p>
       </div>
 
@@ -141,7 +156,7 @@ export default function ScanPage() {
 
                 {!cameraActive && (
                   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', gap: 12, background: '#0a0f1a' }}>
-                    <div style={{ fontSize: 48 }}>📷</div>
+                    <div style={{ fontSize: 48 }}><FontAwesomeIcon icon={faQrcode} /></div>
                     <p style={{ color: 'var(--text-muted)', fontSize: 14 }}>Camera not started</p>
                     {cameraError && <p style={{ color: 'var(--danger)', fontSize: 13, textAlign: 'center', padding: '0 16px' }}>{cameraError}</p>}
                   </div>
@@ -158,14 +173,14 @@ export default function ScanPage() {
 
               <div style={{ padding: '12px 16px', display: 'flex', gap: 8, borderTop: '1px solid var(--border)' }}>
                 {!cameraActive
-                  ? <button className="btn btn-primary btn-full" onClick={startCamera}>▶ Start Camera</button>
-                  : <button className="btn btn-ghost btn-full" onClick={stopCamera}>⏹ Stop Camera</button>
+                  ? <button className="btn btn-primary btn-full" onClick={startCamera}><FontAwesomeIcon icon={faPlay} style={{ marginRight: 8 }} />Start Camera</button>
+                  : <button className="btn btn-ghost btn-full" onClick={stopCamera}><FontAwesomeIcon icon={faStop} style={{ marginRight: 8 }} />Stop Camera</button>
                 }
               </div>
             </div>
 
             <div className="alert alert-info mt-4" style={{ fontSize: 13 }}>
-              💡 Works in any modern browser. Hold the QR code steady in the frame.
+              <FontAwesomeIcon icon={faLightbulb} style={{ marginRight: 8 }} />Works in any modern browser. Hold the QR code steady in the frame.
               If scanning is slow, use Manual Entry instead.
             </div>
           </div>
@@ -179,7 +194,7 @@ export default function ScanPage() {
                 {result.ok ? (
                   <>
                     <div style={{ fontSize: 28, marginBottom: 4 }}>
-                      {MEAL_ICONS[result.meal_type] || '✅'}
+                      <FontAwesomeIcon icon={MEAL_ICONS[result.meal_type] || faCircleCheck} />
                     </div>
                     <div className="scan-result-name" style={{ color: 'var(--success)' }}>
                       {result.student_name}
@@ -198,12 +213,12 @@ export default function ScanPage() {
                       </span>
                     </div>
                     {result.warning && (
-                      <div className="warning-banner">⚠️ {result.warning}</div>
+                      <div className="warning-banner"><FontAwesomeIcon icon={faTriangleExclamation} style={{ marginRight: 8 }} />{result.warning}</div>
                     )}
                   </>
                 ) : (
                   <>
-                    <div style={{ fontSize: 28, marginBottom: 4 }}>❌</div>
+                    <div style={{ fontSize: 28, marginBottom: 4 }}><FontAwesomeIcon icon={faCircleXmark} /></div>
                     <div className="scan-result-name" style={{ color: 'var(--danger)' }}>Scan Failed</div>
                     <div className="scan-result-meal">{result.message}</div>
                   </>
@@ -211,15 +226,15 @@ export default function ScanPage() {
               </div>
             ) : (
               <div className="card" style={{ textAlign: 'center', padding: 32 }}>
-                <div style={{ fontSize: 36, marginBottom: 8 }}>⏳</div>
-                <p style={{ color: 'var(--text-muted)', fontSize: 14 }}>Waiting for scan…</p>
+                <div style={{ fontSize: 36, marginBottom: 8 }}><FontAwesomeIcon icon={faSpinner} spin /></div>
+                <p style={{ color: 'var(--text-muted)', fontSize: 14 }}>Waiting for scan...</p>
                 <p style={{ color: 'var(--text-muted)', fontSize: 12, marginTop: 4 }}>Result will appear here</p>
               </div>
             )}
 
             {/* Manual Entry */}
             <div className="card">
-              <div className="card-title">⌨️ Manual Entry</div>
+              <div className="card-title"><FontAwesomeIcon icon={faKeyboard} style={{ marginRight: 8 }} />Manual Entry</div>
               <p style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 12 }}>
                 Enter the student's Roll Number or DB ID directly.
               </p>
@@ -235,7 +250,9 @@ export default function ScanPage() {
                   />
                 </div>
                 <button type="submit" className="btn btn-success btn-full" disabled={loading}>
-                  {loading ? '⏳ Processing…' : '✅ Record Meal'}
+                  {loading
+                    ? <><FontAwesomeIcon icon={faSpinner} spin style={{ marginRight: 8 }} />Processing...</>
+                    : <><FontAwesomeIcon icon={faCircleCheck} style={{ marginRight: 8 }} />Record Meal</>}
                 </button>
               </form>
             </div>

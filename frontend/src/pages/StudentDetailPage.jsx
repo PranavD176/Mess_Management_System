@@ -1,9 +1,26 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import {
+  faCloudSun,
+  faSun,
+  faMoon,
+  faUser,
+  faFilePdf,
+  faRotate,
+  faFileInvoiceDollar,
+  faCircle,
+  faTriangleExclamation,
+  faCircleCheck,
+  faDownload,
+  faUtensils,
+  faMoneyBillWave,
+  faClipboardList,
+} from '@fortawesome/free-solid-svg-icons'
 import { getStudentFull } from '../api'
 import { formatMoney, toMoneyInt } from '../utils/money'
 
-const MEAL_ICONS = { breakfast: '🌅', lunch: '☀️', dinner: '🌙' }
+const MEAL_ICONS = { breakfast: faCloudSun, lunch: faSun, dinner: faMoon }
 const TXN_COLOR  = { deduction: 'var(--danger)', installment: 'var(--success)', carry_forward: 'var(--accent)', adjustment: 'var(--warning)' }
 
 function TabBtn({ label, active, onClick }) {
@@ -68,17 +85,20 @@ export default function StudentDetailPage() {
             <button className="btn btn-ghost btn-sm" style={{ marginBottom: 8 }} onClick={() => navigate('/students')}>
               ← All Students
             </button>
-            <h1 className="page-title">👤 {student.name}</h1>
+            <h1 className="page-title"><FontAwesomeIcon icon={faUser} style={{ marginRight: 8 }} />{student.name}</h1>
             <p className="page-subtitle">{student.roll_no} · {student.course} {student.branch && `· ${student.branch}`} · Year {student.year}</p>
           </div>
           <div style={{ display: 'flex', gap: 8 }}>
             {student.fee_receipt && (
               <a href={student.fee_receipt} target="_blank" rel="noopener noreferrer" className="btn btn-ghost btn-sm" style={{ border: '1px solid var(--border)' }}>
-                📄 Fee Receipt
+                <FontAwesomeIcon icon={faFilePdf} style={{ marginRight: 8 }} />
+                Fee Receipt
               </a>
             )}
             <button className="btn btn-primary btn-sm" onClick={() => navigate(`/students/${id}/plan`)}>
-              {plan ? '🔄 Renew Plan' : '💳 Create Plan'}
+              {plan
+                ? <><FontAwesomeIcon icon={faRotate} style={{ marginRight: 8 }} />Renew Plan</>
+                : <><FontAwesomeIcon icon={faFileInvoiceDollar} style={{ marginRight: 8 }} />Create Plan</>}
             </button>
           </div>
         </div>
@@ -94,9 +114,9 @@ export default function StudentDetailPage() {
             </div>
             <div className="stat-sub">
               {balAmt == null  ? 'No active plan'
-               : balAmt < 0   ? '🔴 In debt — payment needed'
-               : balAmt < 500 ? '⚠️ Low balance'
-               : '✅ Sufficient'}
+               : balAmt < 0   ? 'In debt - payment needed'
+               : balAmt < 500 ? 'Low balance'
+               : 'Sufficient'}
             </div>
           </div>
           <div className="stat-card">
@@ -127,7 +147,7 @@ export default function StudentDetailPage() {
               <div style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 12 }}>
                 DB ID #{student.id} · Roll No: {student.roll_no}
               </div>
-              <a href={qr_base64} download={`qr_${student.roll_no}.png`} className="btn btn-ghost btn-sm">⬇️ Download QR</a>
+              <a href={qr_base64} download={`qr_${student.roll_no}.png`} className="btn btn-ghost btn-sm"><FontAwesomeIcon icon={faDownload} style={{ marginRight: 8 }} />Download QR</a>
             </div>
           </div>
         )}
@@ -135,16 +155,16 @@ export default function StudentDetailPage() {
         {/* Tabs */}
         <div className="card" style={{ padding: 0 }}>
           <div style={{ display: 'flex', borderBottom: '1px solid var(--border)', padding: '0 8px' }}>
-            <TabBtn label={`🍽️ Meals (${entries.length})`}  active={tab==='meals'} onClick={() => setTab('meals')} />
-            <TabBtn label={`💰 Transactions (${transactions.length})`} active={tab==='txns'}  onClick={() => setTab('txns')} />
-            <TabBtn label={`📋 Plans (${plans.length})`}     active={tab==='plans'} onClick={() => setTab('plans')} />
+            <TabBtn label={`Meals (${entries.length})`}  active={tab==='meals'} onClick={() => setTab('meals')} />
+            <TabBtn label={`Transactions (${transactions.length})`} active={tab==='txns'}  onClick={() => setTab('txns')} />
+            <TabBtn label={`Plans (${plans.length})`}     active={tab==='plans'} onClick={() => setTab('plans')} />
           </div>
 
           <div style={{ padding: 20 }}>
             {/* Meal History */}
             {tab === 'meals' && (
               entries.length === 0
-                ? <div className="empty-state"><div className="empty-state-icon">🍽️</div><p>No meal history yet</p></div>
+                ? <div className="empty-state"><div className="empty-state-icon"><FontAwesomeIcon icon={faUtensils} /></div><p>No meal history yet</p></div>
                 : <div className="table-wrapper">
                     <table>
                       <thead><tr><th>#</th><th>Meal</th><th>Date & Time</th><th>Amount</th><th>Recorded By</th></tr></thead>
@@ -152,7 +172,7 @@ export default function StudentDetailPage() {
                         {entries.map(e => (
                           <tr key={e.id}>
                             <td className="text-muted text-sm">#{e.id}</td>
-                            <td><span>{MEAL_ICONS[e.meal_type]} </span><span className="badge badge-info">{e.meal_type}</span></td>
+                            <td><span><FontAwesomeIcon icon={MEAL_ICONS[e.meal_type] || faUtensils} /> </span><span className="badge badge-info">{e.meal_type}</span></td>
                             <td>{new Date(e.entry_time).toLocaleString('en-IN')}</td>
                             <td className="text-danger font-bold">- ₹{toMoneyInt(e.amount_deducted) ?? 0}</td>
                             <td className="text-muted text-sm">{e.recorded_by || '—'}</td>
@@ -166,7 +186,7 @@ export default function StudentDetailPage() {
             {/* Transactions */}
             {tab === 'txns' && (
               transactions.length === 0
-                ? <div className="empty-state"><div className="empty-state-icon">💳</div><p>No transactions yet</p></div>
+                ? <div className="empty-state"><div className="empty-state-icon"><FontAwesomeIcon icon={faMoneyBillWave} /></div><p>No transactions yet</p></div>
                 : <div className="table-wrapper">
                     <table>
                       <thead><tr><th>#</th><th>Type</th><th>Amount</th><th>Balance After</th><th>Note</th><th>Date</th></tr></thead>
@@ -191,7 +211,7 @@ export default function StudentDetailPage() {
             {/* Plan History */}
             {tab === 'plans' && (
               plans.length === 0
-                ? <div className="empty-state"><div className="empty-state-icon">📋</div><p>No plans yet</p></div>
+                ? <div className="empty-state"><div className="empty-state-icon"><FontAwesomeIcon icon={faClipboardList} /></div><p>No plans yet</p></div>
                 : <div className="table-wrapper">
                     <table>
                       <thead><tr><th>Plan #</th><th>Installment</th><th>Balance</th><th>Start</th><th>End</th><th>Status</th></tr></thead>

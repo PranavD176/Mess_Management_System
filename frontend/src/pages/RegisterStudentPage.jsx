@@ -1,6 +1,16 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import {
+  faUserPlus,
+  faUser,
+  faSpinner,
+  faCircleCheck,
+  faPlus,
+  faDownload,
+  faQrcode,
+} from '@fortawesome/free-solid-svg-icons'
 import { registerStudentAdmin } from '../api'
 
 export default function RegisterStudentPage() {
@@ -31,7 +41,7 @@ export default function RegisterStudentPage() {
   return (
     <>
       <div className="page-header">
-        <h1 className="page-title">➕ Register Student</h1>
+        <h1 className="page-title"><FontAwesomeIcon icon={faUserPlus} style={{ marginRight: 8 }} />Register Student</h1>
         <p className="page-subtitle">Add a new student and generate their unique QR code</p>
       </div>
 
@@ -40,7 +50,7 @@ export default function RegisterStudentPage() {
 
           {/* Form */}
           <div className="card">
-            <div className="card-title">👤 Student Details</div>
+            <div className="card-title"><FontAwesomeIcon icon={faUser} style={{ marginRight: 8 }} />Student Details</div>
             <form onSubmit={handleSubmit}>
               <div className="form-group">
                 <label className="form-label" htmlFor="reg-name">Full Name</label>
@@ -109,11 +119,14 @@ export default function RegisterStudentPage() {
 
               <div style={{ display: 'flex', gap: 10, marginTop: 8 }}>
                 <button type="submit" className="btn btn-primary" disabled={loading}>
-                  {loading ? '⏳ Registering…' : '✅ Register Student'}
+                  {loading
+                    ? <><FontAwesomeIcon icon={faSpinner} spin style={{ marginRight: 8 }} />Registering...</>
+                    : <><FontAwesomeIcon icon={faCircleCheck} style={{ marginRight: 8 }} />Register Student</>}
                 </button>
                 {registered && (
                   <button type="button" className="btn btn-ghost" onClick={handleReset}>
-                    ➕ New Registration
+                    <FontAwesomeIcon icon={faPlus} style={{ marginRight: 8 }} />
+                    New Registration
                   </button>
                 )}
               </div>
@@ -124,7 +137,7 @@ export default function RegisterStudentPage() {
           <div className="card">
             {registered ? (
               <div>
-                <div className="card-title">🎉 Registration Successful</div>
+                <div className="card-title"><FontAwesomeIcon icon={faCircleCheck} style={{ marginRight: 8 }} />Registration Successful</div>
                 <div style={{ background: 'var(--success-bg)', border: '1px solid rgba(16,185,129,0.2)', borderRadius: 8, padding: '12px 16px', marginBottom: 20, fontSize: 13 }}>
                   <div><strong>Name:</strong> {registered.name}</div>
                   <div><strong>Roll No:</strong> {registered.roll_no}</div>
@@ -147,20 +160,22 @@ export default function RegisterStudentPage() {
                       download={`qr_${registered.roll_no}.png`}
                       className="btn btn-ghost btn-sm"
                     >
-                      ⬇️ Download QR
+                      <FontAwesomeIcon icon={faDownload} style={{ marginRight: 8 }} />
+                      Download QR
                     </a>
                     <button
                       className="btn btn-primary btn-sm"
                       onClick={() => navigate(`/students/${registered.id}`)}
                     >
-                      👤 View Student
+                      <FontAwesomeIcon icon={faUser} style={{ marginRight: 8 }} />
+                      View Student
                     </button>
                   </div>
                 </div>
               </div>
             ) : (
               <div className="empty-state">
-                <div className="empty-state-icon">🔲</div>
+                <div className="empty-state-icon"><FontAwesomeIcon icon={faQrcode} /></div>
                 <p>QR code will appear here after registration</p>
               </div>
             )}

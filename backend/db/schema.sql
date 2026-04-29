@@ -24,7 +24,7 @@ CREATE TABLE IF NOT EXISTS users (
     id         SERIAL PRIMARY KEY,
     username   VARCHAR(50)  UNIQUE NOT NULL,
     password   VARCHAR(255) NOT NULL,   -- bcrypt hash
-    role       VARCHAR(10)  NOT NULL CHECK (role IN ('admin','staff')),
+    role       VARCHAR(10)  NOT NULL CHECK (role IN ('admin','staff','student')),
     created_at TIMESTAMPTZ  DEFAULT NOW()
 );
 

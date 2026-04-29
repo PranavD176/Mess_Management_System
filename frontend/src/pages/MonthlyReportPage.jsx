@@ -1,6 +1,18 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import {
+  faChartColumn,
+  faSpinner,
+  faCalendarDay,
+  faUsers,
+  faUtensils,
+  faMoneyBillWave,
+  faGraduationCap,
+  faMagnifyingGlass,
+  faArrowRight,
+} from '@fortawesome/free-solid-svg-icons'
 import { getMonthlyReport } from '../api'
 import { formatMoney, toMoneyInt } from '../utils/money'
 
@@ -40,7 +52,7 @@ export default function MonthlyReportPage() {
   return (
     <>
       <div className="page-header">
-        <h1 className="page-title">📊 Monthly Meal Report</h1>
+        <h1 className="page-title"><FontAwesomeIcon icon={faChartColumn} style={{ marginRight: 8 }} />Monthly Meal Report</h1>
         <p className="page-subtitle">Per-student meal totals for any month</p>
       </div>
 
@@ -67,7 +79,9 @@ export default function MonthlyReportPage() {
             </div>
 
             <button className="btn btn-primary" onClick={fetchReport} disabled={loading}>
-              {loading ? '⏳ Loading…' : '📊 Generate Report'}
+              {loading
+                ? <><FontAwesomeIcon icon={faSpinner} spin style={{ marginRight: 8 }} />Loading...</>
+                : <><FontAwesomeIcon icon={faChartColumn} style={{ marginRight: 8 }} />Generate Report</>}
             </button>
           </div>
         </div>
@@ -77,25 +91,25 @@ export default function MonthlyReportPage() {
             {/* Summary stats */}
             <div className="stat-grid mb-6">
               <div className="stat-card">
-                <div className="stat-icon">📅</div>
+                <div className="stat-icon"><FontAwesomeIcon icon={faCalendarDay} /></div>
                 <div className="stat-label">Month</div>
                 <div className="stat-value" style={{ fontSize: 22 }}>
                   {MONTH_NAMES[report.month - 1]} {report.year}
                 </div>
               </div>
               <div className="stat-card">
-                <div className="stat-icon">👥</div>
+                <div className="stat-icon"><FontAwesomeIcon icon={faUsers} /></div>
                 <div className="stat-label">Students with Meals</div>
                 <div className="stat-value">{report.students.filter(s => s.total_meals).length}</div>
                 <div className="stat-sub">of {report.students.length} total</div>
               </div>
               <div className="stat-card">
-                <div className="stat-icon">🍽️</div>
+                <div className="stat-icon"><FontAwesomeIcon icon={faUtensils} /></div>
                 <div className="stat-label">Total Meals</div>
                 <div className="stat-value">{totalMeals}</div>
               </div>
               <div className="stat-card">
-                <div className="stat-icon">💰</div>
+                <div className="stat-icon"><FontAwesomeIcon icon={faMoneyBillWave} /></div>
                 <div className="stat-label">Total Collected</div>
                 <div className="stat-value" style={{ fontSize: 22 }}>{formatMoney(totalAmount, '₹0')}</div>
               </div>
@@ -105,11 +119,12 @@ export default function MonthlyReportPage() {
             <div className="card">
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
                 <div className="card-title" style={{ marginBottom: 0 }}>
-                  🎓 Student-wise Summary — {MONTH_NAMES[report.month-1]} {report.year}
+                  <FontAwesomeIcon icon={faGraduationCap} style={{ marginRight: 8 }} />
+                  Student-wise Summary — {MONTH_NAMES[report.month-1]} {report.year}
                 </div>
                 <input
                   className="form-input"
-                  placeholder="🔍 Search…"
+                  placeholder="Search..."
                   value={search}
                   onChange={e => setSearch(e.target.value)}
                   style={{ width: 200 }}
@@ -118,7 +133,7 @@ export default function MonthlyReportPage() {
 
               {filtered.length === 0 ? (
                 <div className="empty-state">
-                  <div className="empty-state-icon">📊</div>
+                  <div className="empty-state-icon"><FontAwesomeIcon icon={faChartColumn} /></div>
                   <p>No data for this period</p>
                 </div>
               ) : (
@@ -154,7 +169,7 @@ export default function MonthlyReportPage() {
                           <td><strong style={{ color: 'var(--success)' }}>{formatMoney(s.total_amount, '₹0')}</strong></td>
                           <td>
                             <button className="btn btn-ghost btn-sm" onClick={() => navigate(`/students/${s.student_id}`)}>
-                              View →
+                              View <FontAwesomeIcon icon={faArrowRight} style={{ marginLeft: 6 }} />
                             </button>
                           </td>
                         </tr>
@@ -178,7 +193,7 @@ export default function MonthlyReportPage() {
 
         {!report && !loading && (
           <div className="empty-state" style={{ paddingTop: 60 }}>
-            <div className="empty-state-icon">📊</div>
+            <div className="empty-state-icon"><FontAwesomeIcon icon={faChartColumn} /></div>
             <p>Select month and year, then Generate Report</p>
           </div>
         )}

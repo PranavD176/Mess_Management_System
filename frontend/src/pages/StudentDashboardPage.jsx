@@ -1,6 +1,16 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import {
+  faFilePdf,
+  faUtensils,
+  faFileInvoiceDollar,
+  faClipboardList,
+  faBowlRice,
+  faArrowRotateRight,
+  faPlus,
+} from '@fortawesome/free-solid-svg-icons'
 import { getCurrentStudent } from '../api'
 import { formatMoney, toMoneyInt } from '../utils/money'
 
@@ -190,7 +200,8 @@ export default function StudentDashboardPage() {
                   </button>
                   {student.fee_receipt && (
                     <a href={student.fee_receipt} target="_blank" rel="noopener noreferrer" className="btn btn-ghost" style={{ border: '1px solid var(--border)' }}>
-                      📄 View Fee Receipt
+                      <FontAwesomeIcon icon={faFilePdf} style={{ marginRight: 8 }} />
+                      View Fee Receipt
                     </a>
                   )}
                 </div>
@@ -288,7 +299,7 @@ export default function StudentDashboardPage() {
                   </div>
                 ) : (
                   <div className="empty-state">
-                    <div className="empty-state-icon">🍽️</div>
+                    <div className="empty-state-icon"><FontAwesomeIcon icon={faUtensils} /></div>
                     <h3>No meal records found</h3>
                     <p>You haven't had any meals recorded yet</p>
                   </div>
@@ -344,7 +355,7 @@ export default function StudentDashboardPage() {
                   </div>
                 ) : (
                   <div className="empty-state">
-                    <div className="empty-state-icon">💳</div>
+                    <div className="empty-state-icon"><FontAwesomeIcon icon={faFileInvoiceDollar} /></div>
                     <h3>No transaction records found</h3>
                     <p>You don't have any transactions yet</p>
                   </div>
@@ -404,7 +415,7 @@ export default function StudentDashboardPage() {
                   </div>
                 ) : (
                   <div className="empty-state">
-                    <div className="empty-state-icon">📋</div>
+                    <div className="empty-state-icon"><FontAwesomeIcon icon={faClipboardList} /></div>
                     <h3>No billing plans found</h3>
                     <p>Create your first plan to start using mess facility</p>
                   </div>
@@ -418,7 +429,7 @@ export default function StudentDashboardPage() {
         <div style={{ marginTop: 24, display: 'flex', gap: 12 }}>
           {activePlan ? (
             <button className="btn btn-primary" onClick={() => navigate('/renew-plan')}>
-              <span>Renew Plan</span>
+              <span><FontAwesomeIcon icon={faArrowRotateRight} style={{ marginRight: 8 }} />Renew Plan</span>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M23 4v6h-6"/>
                 <path d="M1 20v-6h6"/>
@@ -427,7 +438,7 @@ export default function StudentDashboardPage() {
             </button>
           ) : (
             <button className="btn btn-primary" onClick={() => navigate('/renew-plan')}>
-              <span>Create Plan</span>
+              <span><FontAwesomeIcon icon={faPlus} style={{ marginRight: 8 }} />Create Plan</span>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M12 2v20M2 12h20"/>
               </svg>

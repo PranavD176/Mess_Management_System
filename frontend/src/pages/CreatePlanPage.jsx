@@ -1,6 +1,17 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import {
+  faRotate,
+  faFileInvoiceDollar,
+  faFilePdf,
+  faSpinner,
+  faCircleCheck,
+  faChartPie,
+  faTriangleExclamation,
+  faScroll,
+} from '@fortawesome/free-solid-svg-icons'
 import { getStudent, createBillingPlan, createMyPlan, renewBillingPlan, renewMyPlan, getCurrentStudent, submitPendingPlan } from '../api'
 import { formatMoney, toMoneyInt } from '../utils/money'
 
@@ -133,7 +144,10 @@ export default function CreatePlanPage() {
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: 24, alignItems: 'start' }}>
 
           <div className="card">
-            <div className="card-title">{isRenewal ? '🔄 Renewal Details' : '💳 Plan Details'}</div>
+            <div className="card-title">
+              <FontAwesomeIcon icon={isRenewal ? faRotate : faFileInvoiceDollar} style={{ marginRight: 8 }} />
+              {isRenewal ? 'Renewal Details' : 'Plan Details'}
+            </div>
 
             {isRenewal && (
               <div className="alert alert-info mb-4">
@@ -162,7 +176,7 @@ export default function CreatePlanPage() {
                     required
                   />
                   <label htmlFor="feeReceipt" className="file-upload-label">
-                    <div className="file-upload-icon">📄</div>
+                    <div className="file-upload-icon"><FontAwesomeIcon icon={faFilePdf} /></div>
                     <div className="file-upload-text">
                       {feeReceipt ? feeReceipt.name : 'Choose PDF file or drag and drop'}
                     </div>
@@ -234,7 +248,9 @@ export default function CreatePlanPage() {
               </div>
 
               <button type="submit" className="btn btn-primary btn-lg" disabled={saving || !feeReceipt}>
-                {saving ? '⏳ Submitting…' : '✅ Submit for Approval'}
+                {saving
+                  ? <><FontAwesomeIcon icon={faSpinner} spin style={{ marginRight: 8 }} />Submitting...</>
+                  : <><FontAwesomeIcon icon={faCircleCheck} style={{ marginRight: 8 }} />Submit for Approval</>}
               </button>
             </form>
           </div>
@@ -242,7 +258,7 @@ export default function CreatePlanPage() {
           {/* Summary */}
           <div>
             <div className="card">
-              <div className="card-title">📊 Plan Summary</div>
+              <div className="card-title"><FontAwesomeIcon icon={faChartPie} style={{ marginRight: 8 }} />Plan Summary</div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 12, fontSize: 14 }}>
                 <div className="flex justify-between">
                   <span className="text-muted">{isRenewal ? 'Payment Received' : 'Expected Payment'}</span>
@@ -250,7 +266,7 @@ export default function CreatePlanPage() {
                 </div>
                 {isRenewal && (
                   <div className="flex justify-between">
-                    <span className="text-muted">{carryForward < 0 ? '⚠️ Outstanding Debt' : 'Credit carry-over'}</span>
+                    <span className="text-muted">{carryForward < 0 ? <><FontAwesomeIcon icon={faTriangleExclamation} style={{ marginRight: 6 }} />Outstanding Debt</> : 'Credit carry-over'}</span>
                     <span className="font-bold" style={{ color: carryForward < 0 ? 'var(--danger)' : 'var(--accent)' }}>
                       {carryForward < 0 ? `- ₹${Math.abs(carryForward)}` : `+ ₹${carryForward}`}
                     </span>
@@ -278,7 +294,7 @@ export default function CreatePlanPage() {
 
             {isRenewal && (
               <div className="card mt-4" style={{ background: 'var(--bg-card)' }}>
-                <div className="card-title">📜 Previous Plan</div>
+                <div className="card-title"><FontAwesomeIcon icon={faScroll} style={{ marginRight: 8 }} />Previous Plan</div>
                 <div style={{ fontSize: 13, display: 'flex', flexDirection: 'column', gap: 6 }}>
                   <div className="flex justify-between"><span className="text-muted">Installment Paid</span><span>{formatMoney(renewal.installment_amount, '₹0')}</span></div>
                   <div className="flex justify-between"><span className="text-muted">Remaining</span><span className="text-warning font-bold">{formatMoney(renewal.balance, '₹0')}</span></div>

@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import toast from 'react-hot-toast'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faUtensils, faTriangleExclamation, faSpinner, faRightToBracket } from '@fortawesome/free-solid-svg-icons'
 import { useAuth } from '../context/AuthContext'
 
 export default function LoginPage() {
@@ -15,7 +17,7 @@ export default function LoginPage() {
     setError('')
     setLoading(true)
     try {
-      const data = await login(form.username, form.password)
+      const data = await login(form.username.trim(), form.password)
       toast.success(`Welcome, ${data.username}!`)
       // Redirect based on user role
       const redirectPath = data.role === 'student' ? '/dashboard' : '/scan'
@@ -31,12 +33,12 @@ export default function LoginPage() {
     <div className="login-page">
       <div className="login-card">
         <div className="login-logo">
-          <div className="login-logo-icon">🍽️</div>
+          <div className="login-logo-icon"><FontAwesomeIcon icon={faUtensils} /></div>
           <h1 className="login-title">MessTrack</h1>
           <p className="login-subtitle">QR Code Mess Management System</p>
         </div>
 
-        {error && <div className="alert alert-error mb-4">⚠️ {error}</div>}
+        {error && <div className="alert alert-error mb-4"><FontAwesomeIcon icon={faTriangleExclamation} style={{ marginRight: 8 }} />{error}</div>}
 
         <form onSubmit={handleSubmit}>
           <div className="form-group">
@@ -72,7 +74,9 @@ export default function LoginPage() {
             style={{ marginTop: 8 }}
             disabled={loading}
           >
-            {loading ? '⏳ Signing in…' : '🔑 Sign In'}
+            {loading
+              ? <><FontAwesomeIcon icon={faSpinner} spin style={{ marginRight: 8 }} />Signing in...</>
+              : <><FontAwesomeIcon icon={faRightToBracket} style={{ marginRight: 8 }} />Sign In</>}
           </button>
         </form>
 

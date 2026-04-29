@@ -1,6 +1,15 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import {
+  faClipboardList,
+  faFilePdf,
+  faSpinner,
+  faCircleCheck,
+  faCircleXmark,
+  faFileSignature,
+} from '@fortawesome/free-solid-svg-icons'
 import { getPendingPlans, approvePlan, rejectPlan } from '../api'
 import { formatMoney } from '../utils/money'
 
@@ -97,7 +106,7 @@ export default function ApprovePlanPage() {
             <div className="plans-list" style={{ maxHeight: '600px', overflowY: 'auto' }}>
               {plans.length === 0 ? (
                 <div className="empty-state">
-                  <div className="empty-state-icon">📋</div>
+                  <div className="empty-state-icon"><FontAwesomeIcon icon={faClipboardList} /></div>
                   <h3>No pending plans</h3>
                   <p>All plans have been reviewed</p>
                 </div>
@@ -194,7 +203,8 @@ export default function ApprovePlanPage() {
                         rel="noopener noreferrer"
                         className="btn btn-primary"
                       >
-                        📄 View PDF Receipt
+                        <FontAwesomeIcon icon={faFilePdf} style={{ marginRight: 8 }} />
+                        View PDF Receipt
                       </a>
                     </div>
                     <div className="receipt-note mt-2">
@@ -223,14 +233,22 @@ export default function ApprovePlanPage() {
                         onClick={handleApprove}
                         disabled={processing}
                       >
-                        {processing ? '⏳ Processing...' : '✅ Approve Plan'}
+                        {processing ? (
+                          <><FontAwesomeIcon icon={faSpinner} spin style={{ marginRight: 8 }} />Processing...</>
+                        ) : (
+                          <><FontAwesomeIcon icon={faCircleCheck} style={{ marginRight: 8 }} />Approve Plan</>
+                        )}
                       </button>
                       <button
                         className="btn btn-danger"
                         onClick={handleReject}
                         disabled={processing || !adminNotes.trim()}
                       >
-                        {processing ? '⏳ Processing...' : '❌ Reject Plan'}
+                        {processing ? (
+                          <><FontAwesomeIcon icon={faSpinner} spin style={{ marginRight: 8 }} />Processing...</>
+                        ) : (
+                          <><FontAwesomeIcon icon={faCircleXmark} style={{ marginRight: 8 }} />Reject Plan</>
+                        )}
                       </button>
                     </div>
                   </div>
@@ -239,7 +257,7 @@ export default function ApprovePlanPage() {
             ) : (
               <div className="card">
                 <div className="empty-state">
-                  <div className="empty-state-icon">📝</div>
+                  <div className="empty-state-icon"><FontAwesomeIcon icon={faFileSignature} /></div>
                   <h3>Select a plan to review</h3>
                   <p>Choose a pending plan from the list to review details</p>
                 </div>

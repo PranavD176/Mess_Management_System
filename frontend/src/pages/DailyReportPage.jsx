@@ -1,5 +1,17 @@
 import { useState } from 'react'
 import toast from 'react-hot-toast'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import {
+  faCalendarDay,
+  faChartColumn,
+  faSpinner,
+  faUsers,
+  faUtensils,
+  faMoneyBillWave,
+  faChartSimple,
+  faTableList,
+  faFaceMeh,
+} from '@fortawesome/free-solid-svg-icons'
 import { getDailyReport } from '../api'
 import { formatMoney, toMoneyInt } from '../utils/money'
 
@@ -25,7 +37,7 @@ export default function DailyReportPage() {
   return (
     <>
       <div className="page-header">
-        <h1 className="page-title">📅 Daily Meal Report</h1>
+        <h1 className="page-title"><FontAwesomeIcon icon={faCalendarDay} style={{ marginRight: 8 }} />Daily Meal Report</h1>
         <p className="page-subtitle">Meal counts and amounts deducted for a specific day</p>
       </div>
 
@@ -45,7 +57,9 @@ export default function DailyReportPage() {
               />
             </div>
             <button className="btn btn-primary" onClick={fetchReport} disabled={loading}>
-              {loading ? '⏳ Loading…' : '📊 Generate Report'}
+              {loading
+                ? <><FontAwesomeIcon icon={faSpinner} spin style={{ marginRight: 8 }} />Loading...</>
+                : <><FontAwesomeIcon icon={faChartColumn} style={{ marginRight: 8 }} />Generate Report</>}
             </button>
           </div>
         </div>
@@ -55,25 +69,25 @@ export default function DailyReportPage() {
             {/* Summary stats */}
             <div className="stat-grid mb-6" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))' }}>
               <div className="stat-card">
-                <div className="stat-icon">👥</div>
+                <div className="stat-icon"><FontAwesomeIcon icon={faUsers} /></div>
                 <div className="stat-label">Students Scanned</div>
                 <div className="stat-value">{report.by_student?.length || 0}</div>
                 <div className="stat-sub">Unique students</div>
               </div>
               <div className="stat-card">
-                <div className="stat-icon">🍽️</div>
+                <div className="stat-icon"><FontAwesomeIcon icon={faUtensils} /></div>
                 <div className="stat-label">Total Meals</div>
                 <div className="stat-value">{report.total_entries || 0}</div>
                 <div className="stat-sub">{date}</div>
               </div>
               <div className="stat-card">
-                <div className="stat-icon">💰</div>
+                <div className="stat-icon"><FontAwesomeIcon icon={faMoneyBillWave} /></div>
                 <div className="stat-label">Total Deducted</div>
                 <div className="stat-value" style={{ fontSize: 22 }}>{formatMoney(report.grand_total, '₹0')}</div>
                 <div className="stat-sub">Revenue collected</div>
               </div>
               <div className="stat-card">
-                <div className="stat-icon">📊</div>
+                <div className="stat-icon"><FontAwesomeIcon icon={faChartSimple} /></div>
                 <div className="stat-label">Avg per Student</div>
                 <div className="stat-value">
                   ₹{report.by_student?.length ? Math.round((toMoneyInt(report.grand_total) ?? 0) / report.by_student.length) : 0}
@@ -84,10 +98,10 @@ export default function DailyReportPage() {
 
             {/* Student breakdown table */}
             <div className="card">
-              <div className="card-title">👥 Student-wise Breakdown</div>
+              <div className="card-title"><FontAwesomeIcon icon={faTableList} style={{ marginRight: 8 }} />Student-wise Breakdown</div>
               {!report.by_student?.length ? (
                 <div className="empty-state">
-                  <div className="empty-state-icon">😴</div>
+                  <div className="empty-state-icon"><FontAwesomeIcon icon={faFaceMeh} /></div>
                   <p>No students scanned on {date}</p>
                 </div>
               ) : (
@@ -131,7 +145,7 @@ export default function DailyReportPage() {
 
         {!report && !loading && (
           <div className="empty-state" style={{ paddingTop: 60 }}>
-            <div className="empty-state-icon">📅</div>
+            <div className="empty-state-icon"><FontAwesomeIcon icon={faCalendarDay} /></div>
             <p>Select a date and click Generate Report</p>
           </div>
         )}

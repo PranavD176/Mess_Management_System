@@ -16,10 +16,14 @@ class LoginRequest(BaseModel):
 
 @router.post("/login")
 def login(body: LoginRequest):
+    username_input = body.username.strip()
+    if not username_input:
+        raise HTTPException(status_code=400, detail="Username is required")
+
     with get_cursor() as cur:
         cur.execute(
-            "SELECT id, username, password, role FROM users WHERE username = %s",
-            (body.username,),
+            "SELECT id, username, password, role FROM users WHERE LOWER(username) = LOWER(%s)",
+            (username_input,),
         )
         user = cur.fetchone()
 
@@ -29,7 +33,7 @@ def login(body: LoginRequest):
         # Check approval status for students
         if user["role"] == "student":
             cur.execute(
-                "SELECT is_approved FROM students WHERE roll_no = %s",
+                "SELECT is_approved FROM students WHERE LOWER(roll_no) = LOWER(%s)",
                 (user["username"],)
             )
             student = cur.fetchone()

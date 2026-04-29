@@ -1,5 +1,13 @@
 import { useState, useEffect } from 'react'
 import toast from 'react-hot-toast'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import {
+  faSpinner,
+  faUserCheck,
+  faCircleCheck,
+  faClipboardList,
+  faCircleXmark,
+} from '@fortawesome/free-solid-svg-icons'
 import { getPendingStudents, approveStudent, rejectStudent } from '../api'
 
 export default function ApproveRegistrationPage() {
@@ -34,7 +42,7 @@ export default function ApproveRegistrationPage() {
       if (response.data.login_info) {
         toast.success(`${response.data.name} can now login!`, {
           duration: 8000,
-          icon: '🎉',
+          icon: <FontAwesomeIcon icon={faCircleCheck} />,
           style: {
             background: '#10b981',
             color: 'white',
@@ -70,7 +78,7 @@ export default function ApproveRegistrationPage() {
   if (loading) {
     return (
       <div className="page-header">
-        <h1 className="page-title">⏳ Loading pending registrations...</h1>
+        <h1 className="page-title"><FontAwesomeIcon icon={faSpinner} spin style={{ marginRight: 8 }} />Loading pending registrations...</h1>
       </div>
     )
   }
@@ -78,21 +86,22 @@ export default function ApproveRegistrationPage() {
   return (
     <>
       <div className="page-header">
-        <h1 className="page-title">✔️ Approve Student Registration</h1>
+        <h1 className="page-title"><FontAwesomeIcon icon={faUserCheck} style={{ marginRight: 8 }} />Approve Student Registration</h1>
         <p className="page-subtitle">Review and approve pending student registrations</p>
       </div>
 
       <div className="page-body">
         {pendingStudents.length === 0 ? (
           <div className="empty-state">
-            <div className="empty-state-icon">✅</div>
+            <div className="empty-state-icon"><FontAwesomeIcon icon={faCircleCheck} /></div>
             <h3>No Pending Registrations</h3>
             <p>All student registrations have been processed.</p>
           </div>
         ) : (
           <div className="card">
             <div className="card-title">
-              📋 Pending Registrations ({pendingStudents.length})
+              <FontAwesomeIcon icon={faClipboardList} style={{ marginRight: 8 }} />
+              Pending Registrations ({pendingStudents.length})
             </div>
             
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -132,7 +141,9 @@ export default function ApproveRegistrationPage() {
                       disabled={processing[student.id]}
                       style={{ minWidth: 100 }}
                     >
-                      {processing[student.id] === 'approving' ? '⏳ Approving...' : '✅ Approve'}
+                      {processing[student.id] === 'approving'
+                        ? <><FontAwesomeIcon icon={faSpinner} spin style={{ marginRight: 8 }} />Approving...</>
+                        : <><FontAwesomeIcon icon={faCircleCheck} style={{ marginRight: 8 }} />Approve</>}
                     </button>
                     <button
                       className="btn btn-danger"
@@ -140,7 +151,9 @@ export default function ApproveRegistrationPage() {
                       disabled={processing[student.id]}
                       style={{ minWidth: 100 }}
                     >
-                      {processing[student.id] === 'rejecting' ? '⏳ Rejecting...' : '❌ Reject'}
+                      {processing[student.id] === 'rejecting'
+                        ? <><FontAwesomeIcon icon={faSpinner} spin style={{ marginRight: 8 }} />Rejecting...</>
+                        : <><FontAwesomeIcon icon={faCircleXmark} style={{ marginRight: 8 }} />Reject</>}
                     </button>
                   </div>
                 </div>
