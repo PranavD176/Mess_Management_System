@@ -243,3 +243,255 @@ def meal_history(student_id: int, _: dict = Depends(require_admin)):
             "entries": [dict(e) for e in entries],
         },
     }
+
+
+# ── Attendance Calendar ───────────────────────────────────────────────────────
+
+def _build_attendance_response(student_id: int, month: int, year: int):
+    """Shared helper that builds the attendance calendar data for a student."""
+    import calendar
+
+    with get_cursor() as cur:
+        # Get student info
+        cur.execute("SELECT id, name, roll_no FROM students WHERE id = %s", (student_id,))
+        student = cur.fetchone()
+        if not student:
+            raise HTTPException(status_code=404, detail="Student not found")
+
+        # Get the earliest billing plan start date (for frontend month navigation bounds)
+        cur.execute(
+            "SELECT MIN(plan_start) AS earliest_start FROM billing_plans WHERE student_id = %s",
+            (student_id,),
+        )
+        plan_row = cur.fetchone()
+        earliest_start = plan_row["earliest_start"] if plan_row else None
+
+        # Fetch all meal entries for the requested month
+        cur.execute(
+            """
+            SELECT entry_date, meal_type
+            FROM meal_entry
+            WHERE student_id = %s
+              AND EXTRACT(MONTH FROM entry_date) = %s
+              AND EXTRACT(YEAR  FROM entry_date) = %s
+            ORDER BY entry_date, meal_type
+            """,
+            (student_id, month, year),
+        )
+        rows = cur.fetchall()
+
+    # Build per-day mapping: { "2026-05-01": ["breakfast", "lunch"], ... }
+    days = {}
+    for r in rows:
+        d = str(r["entry_date"])
+        if d not in days:
+            days[d] = []
+        days[d].append(r["meal_type"])
+
+    # Monthly summary
+    total_days_in_month = calendar.monthrange(year, month)[1]
+    days_present = len(days)
+    breakfast_count = sum(1 for meals in days.values() if "breakfast" in meals)
+    lunch_count     = sum(1 for meals in days.values() if "lunch" in meals)
+    dinner_count    = sum(1 for meals in days.values() if "dinner" in meals)
+    total_meals     = sum(len(meals) for meals in days.values())
+
+    return {
+        "student_id": student["id"],
+        "student_name": student["name"],
+        "student_roll_no": student["roll_no"],
+        "month": month,
+        "year": year,
+        "earliest_plan_start": str(earliest_start) if earliest_start else None,
+        "days": days,
+        "summary": {
+            "total_days_in_month": total_days_in_month,
+            "days_present": days_present,
+            "total_meals": total_meals,
+            "breakfast_count": breakfast_count,
+            "lunch_count": lunch_count,
+            "dinner_count": dinner_count,
+            "attendance_pct": round((days_present / total_days_in_month) * 100, 1) if total_days_in_month else 0,
+        },
+    }
+
+
+@router.get("/attendance/{student_id}")
+def get_student_attendance(
+    student_id: int,
+    month: int = Query(..., ge=1, le=12),
+    year: int  = Query(..., ge=2020),
+    _: dict = Depends(require_admin),
+):
+    """Admin endpoint: get a student's attendance calendar for a given month."""
+    data = _build_attendance_response(student_id, month, year)
+    return {"success": True, "data": data}
+
+
+@router.get("/my-attendance")
+def get_my_attendance(
+    month: int = Query(..., ge=1, le=12),
+    year: int  = Query(..., ge=2020),
+    current_user: dict = Depends(get_current_user),
+):
+    """Student endpoint: get own attendance calendar for a given month."""
+    if current_user["role"] != "student":
+        raise HTTPException(status_code=403, detail="This endpoint is for students only")
+
+    with get_cursor() as cur:
+        cur.execute(
+            "SELECT id FROM students WHERE LOWER(roll_no) = LOWER(%s)",
+            (current_user["username"],),
+        )
+        row = cur.fetchone()
+        if not row:
+            raise HTTPException(status_code=404, detail="Student not found")
+        student_id = row["id"]
+
+    data = _build_attendance_response(student_id, month, year)
+    return {"success": True, "data": data}
+
+
+def _build_yearly_attendance_response(student_id: int, academic_year: int):
+    """
+    Build attendance data for a full academic year (July of academic_year to June of academic_year+1).
+    Returns per-month summaries and a yearly aggregate.
+    """
+    import calendar as cal_mod
+    from datetime import date
+
+    with get_cursor() as cur:
+        cur.execute("SELECT id, name, roll_no FROM students WHERE id = %s", (student_id,))
+        student = cur.fetchone()
+        if not student:
+            raise HTTPException(status_code=404, detail="Student not found")
+
+        start_date = date(academic_year, 7, 1)
+        end_date   = date(academic_year + 1, 6, 30)
+
+        cur.execute(
+            """
+            SELECT entry_date, meal_type
+            FROM meal_entry
+            WHERE student_id = %s
+              AND entry_date >= %s
+              AND entry_date <= %s
+            ORDER BY entry_date, meal_type
+            """,
+            (student_id, start_date, end_date),
+        )
+        rows = cur.fetchall()
+
+    # Build per-day mapping across the whole year
+    all_days = {}
+    for r in rows:
+        d = str(r["entry_date"])
+        if d not in all_days:
+            all_days[d] = []
+        all_days[d].append(r["meal_type"])
+
+    # Build per-month summaries
+    # Academic year months: July(7)..Dec(12) of academic_year, Jan(1)..June(6) of academic_year+1
+    months = []
+    for m in range(7, 13):
+        months.append((academic_year, m))
+    for m in range(1, 7):
+        months.append((academic_year + 1, m))
+
+    monthly_data = []
+    yearly_days_present = 0
+    yearly_total_meals = 0
+    yearly_breakfast = 0
+    yearly_lunch = 0
+    yearly_dinner = 0
+    yearly_total_days = 0
+
+    for (yr, mo) in months:
+        days_in_month = cal_mod.monthrange(yr, mo)[1]
+        yearly_total_days += days_in_month
+        mm = f"{mo:02d}"
+
+        month_days = {}
+        for d_num in range(1, days_in_month + 1):
+            key = f"{yr}-{mm}-{d_num:02d}"
+            if key in all_days:
+                month_days[key] = all_days[key]
+
+        dp = len(month_days)
+        bc = sum(1 for meals in month_days.values() if "breakfast" in meals)
+        lc = sum(1 for meals in month_days.values() if "lunch" in meals)
+        dc = sum(1 for meals in month_days.values() if "dinner" in meals)
+        tm = sum(len(meals) for meals in month_days.values())
+
+        yearly_days_present += dp
+        yearly_total_meals += tm
+        yearly_breakfast += bc
+        yearly_lunch += lc
+        yearly_dinner += dc
+
+        monthly_data.append({
+            "year": yr,
+            "month": mo,
+            "days": month_days,
+            "summary": {
+                "total_days_in_month": days_in_month,
+                "days_present": dp,
+                "total_meals": tm,
+                "breakfast_count": bc,
+                "lunch_count": lc,
+                "dinner_count": dc,
+                "attendance_pct": round((dp / days_in_month) * 100, 1) if days_in_month else 0,
+            },
+        })
+
+    return {
+        "student_id": student["id"],
+        "student_name": student["name"],
+        "student_roll_no": student["roll_no"],
+        "academic_year": academic_year,
+        "academic_year_label": f"July {academic_year} – June {academic_year + 1}",
+        "months": monthly_data,
+        "yearly_summary": {
+            "total_days": yearly_total_days,
+            "days_present": yearly_days_present,
+            "total_meals": yearly_total_meals,
+            "breakfast_count": yearly_breakfast,
+            "lunch_count": yearly_lunch,
+            "dinner_count": yearly_dinner,
+            "attendance_pct": round((yearly_days_present / yearly_total_days) * 100, 1) if yearly_total_days else 0,
+        },
+    }
+
+
+@router.get("/attendance-yearly/{student_id}")
+def get_student_yearly_attendance(
+    student_id: int,
+    academic_year: int = Query(..., ge=2020, description="Start year of academic year (e.g. 2025 for July 2025 – June 2026)"),
+    _: dict = Depends(require_admin),
+):
+    """Admin endpoint: get a student's attendance for a full academic year."""
+    data = _build_yearly_attendance_response(student_id, academic_year)
+    return {"success": True, "data": data}
+
+
+@router.get("/my-attendance-yearly")
+def get_my_yearly_attendance(
+    academic_year: int = Query(..., ge=2020, description="Start year of academic year (e.g. 2025 for July 2025 – June 2026)"),
+    current_user: dict = Depends(get_current_user),
+):
+    """Student endpoint: get own attendance for a full academic year."""
+    if current_user["role"] != "student":
+        raise HTTPException(status_code=403, detail="This endpoint is for students only")
+
+    with get_cursor() as cur:
+        cur.execute(
+            "SELECT id FROM students WHERE LOWER(roll_no) = LOWER(%s)",
+            (current_user["username"],),
+        )
+        row = cur.fetchone()
+        if not row:
+            raise HTTPException(status_code=404, detail="Student not found")
+        student_id = row["id"]
+
+    data = _build_yearly_attendance_response(student_id, academic_year)
+    return {"success": True, "data": data}

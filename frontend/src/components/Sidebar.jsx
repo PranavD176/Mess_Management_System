@@ -19,6 +19,7 @@ import {
   faMoon,
   faTriangleExclamation,
   faRightFromBracket,
+  faCalendarCheck,
 } from '@fortawesome/free-solid-svg-icons'
 import { getMyPlanStatus } from '../api'
 
@@ -28,6 +29,7 @@ const adminLinks = [
   { to: '/students/new', icon: faUserPlus, label: 'Register Student' },
   { to: '/approve-registration', icon: faUserCheck, label: 'Approve Registration' },
   { to: '/approve-plans', icon: faClipboardCheck, label: 'Approve Plans' },
+  { to: '/attendance', icon: faCalendarCheck, label: 'Attendance' },
   { to: '/adjust', icon: faScaleBalanced, label: 'Manual Adjustment' },
   { to: '/reports/daily', icon: faCalendarDay, label: 'Daily Report' },
   { to: '/reports/monthly', icon: faChartColumn, label: 'Monthly Report' },
@@ -40,6 +42,7 @@ const staffLinks = [
 
 const studentLinks = [
   { to: '/dashboard', icon: faGaugeHigh, label: 'My Dashboard' },
+  { to: '/my-attendance', icon: faCalendarCheck, label: 'My Attendance' },
 ]
 
 export default function Sidebar() {

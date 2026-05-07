@@ -119,4 +119,17 @@ export const getPlanStatus = (studentId) =>
 export const getMyPlanStatus = () =>
   api.get('/billing/my-plan-status').then((r) => r.data.data)
 
+// ── Attendance ───────────────────────────────────────────────
+export const getStudentAttendance = (studentId, month, year) =>
+  api.get(`/meals/attendance/${studentId}?month=${month}&year=${year}`).then((r) => r.data.data)
+
+export const getMyAttendance = (month, year) =>
+  api.get(`/meals/my-attendance?month=${month}&year=${year}`).then((r) => r.data.data)
+
+export const getStudentYearlyAttendance = (studentId, academicYear) =>
+  api.get(`/meals/attendance-yearly/${studentId}?academic_year=${academicYear}`).then((r) => r.data.data)
+
+export const getMyYearlyAttendance = (academicYear) =>
+  api.get(`/meals/my-attendance-yearly?academic_year=${academicYear}`).then((r) => r.data.data)
+
 export default api

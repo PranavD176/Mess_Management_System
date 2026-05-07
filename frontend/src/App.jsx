@@ -18,6 +18,8 @@ import ManualAdjustPage   from './pages/ManualAdjustPage'
 import DailyReportPage    from './pages/DailyReportPage'
 import MonthlyReportPage  from './pages/MonthlyReportPage'
 import BillingReportPage  from './pages/BillingReportPage'
+import AttendancePage     from './pages/AttendancePage'
+import AdminAttendancePage from './pages/AdminAttendancePage'
 
 function RoleBasedRedirect() {
   const { role } = useAuth()
@@ -46,6 +48,8 @@ function AppShell() {
           <Route path="/reports/daily"   element={<ProtectedRoute requireAdmin><DailyReportPage /></ProtectedRoute>} />
           <Route path="/reports/monthly" element={<ProtectedRoute requireAdmin><MonthlyReportPage /></ProtectedRoute>} />
           <Route path="/reports/billing" element={<ProtectedRoute requireAdmin><BillingReportPage /></ProtectedRoute>} />
+          <Route path="/attendance"      element={<ProtectedRoute requireAdmin><AdminAttendancePage /></ProtectedRoute>} />
+          <Route path="/my-attendance"   element={<ProtectedRoute><AttendancePage /></ProtectedRoute>} />
           <Route path="*" element={<RoleBasedRedirect />} />
         </Routes>
       </div>

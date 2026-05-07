@@ -629,3 +629,724 @@ tbody tr.row-danger  td { background: var(--danger-bg); }
 .receipt-actions { display: flex; gap: 1rem; margin-bottom: 1rem; }
 .receipt-note { font-size: 0.875rem; color: var(--text-muted); font-style: italic; }
 .admin-actions { background: rgba(255,255,255,0.02); border: 1px solid var(--border); border-radius: 8px; padding: 1rem; }
+
+/* ── Attendance Calendar ─────────────────────────────────────── */
+
+/* Summary card */
+.attendance-summary-card {
+  background: var(--bg-card);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+  padding: 28px;
+  margin-bottom: 20px;
+}
+
+.summary-top-row {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+  margin-bottom: 24px;
+}
+
+.summary-ring-wrap {
+  position: relative;
+  width: 88px;
+  height: 88px;
+  flex-shrink: 0;
+}
+
+.summary-ring-svg {
+  width: 88px;
+  height: 88px;
+}
+
+.summary-ring-label {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.summary-ring-pct {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--text-primary);
+  line-height: 1;
+}
+
+.summary-ring-sub {
+  font-size: 10px;
+  color: var(--text-muted);
+  font-weight: 500;
+  margin-top: 2px;
+}
+
+.summary-stats-col {
+  flex: 1;
+}
+
+.summary-stat-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 12px;
+}
+
+.summary-stat-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.summary-stat-row:last-child {
+  border-bottom: none;
+}
+
+.summary-stat-label {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.summary-stat-value {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.summary-meal-breakdown {
+  display: flex;
+  gap: 12px;
+}
+
+.summary-meal-chip {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  border-radius: var(--radius);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  transition: var(--transition);
+}
+
+.summary-meal-chip strong {
+  margin-left: auto;
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.summary-meal-chip.breakfast-chip {
+  background: rgba(245, 158, 11, 0.1);
+  border: 1px solid rgba(245, 158, 11, 0.2);
+  color: #f59e0b;
+}
+
+.summary-meal-chip.lunch-chip {
+  background: rgba(59, 130, 246, 0.1);
+  border: 1px solid rgba(59, 130, 246, 0.2);
+  color: #3b82f6;
+}
+
+.summary-meal-chip.dinner-chip {
+  background: rgba(139, 92, 246, 0.1);
+  border: 1px solid rgba(139, 92, 246, 0.2);
+  color: #8b5cf6;
+}
+
+/* Calendar container */
+.calendar-container {
+  padding: 0 !important;
+  overflow: hidden;
+}
+
+.calendar-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--border);
+}
+
+.calendar-nav-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50% !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 !important;
+  font-size: 14px;
+}
+
+.calendar-month-label {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -0.3px;
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 0;
+}
+
+.calendar-day-header {
+  padding: 12px 0;
+  text-align: center;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.calendar-day-cell {
+  position: relative;
+  min-height: 80px;
+  padding: 8px;
+  border-right: 1px solid rgba(255, 255, 255, 0.04);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  transition: background 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.calendar-day-cell:nth-child(7n) {
+  border-right: none;
+}
+
+.calendar-day-cell:hover:not(.outside-month) {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.calendar-day-cell.outside-month {
+  opacity: 0.25;
+  pointer-events: none;
+}
+
+.calendar-day-cell.today {
+  background: rgba(59, 130, 246, 0.08);
+}
+
+.calendar-day-cell.today .day-number {
+  background: var(--accent);
+  color: white;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  font-weight: 700;
+}
+
+/* Green levels for meal attendance */
+.calendar-day-cell.green-1 {
+  background: rgba(16, 185, 129, 0.08);
+  border-color: rgba(16, 185, 129, 0.08);
+}
+
+.calendar-day-cell.green-2 {
+  background: rgba(16, 185, 129, 0.15);
+  border-color: rgba(16, 185, 129, 0.12);
+}
+
+.calendar-day-cell.green-3 {
+  background: rgba(16, 185, 129, 0.22);
+  border-color: rgba(16, 185, 129, 0.18);
+}
+
+.calendar-day-cell.green-1:hover { background: rgba(16, 185, 129, 0.14); }
+.calendar-day-cell.green-2:hover { background: rgba(16, 185, 129, 0.22); }
+.calendar-day-cell.green-3:hover { background: rgba(16, 185, 129, 0.30); }
+
+.day-number {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  line-height: 1;
+}
+
+.meal-dots-row {
+  display: flex;
+  gap: 3px;
+  margin-top: auto;
+}
+
+.meal-dot {
+  width: 20px;
+  height: 18px;
+  border-radius: 4px;
+  font-size: 9px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  letter-spacing: 0;
+  transition: var(--transition);
+}
+
+.meal-dot.inactive {
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.15);
+}
+
+.meal-count-badge {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--success);
+  background: var(--success-bg);
+  padding: 1px 5px;
+  border-radius: 6px;
+  line-height: 1.4;
+}
+
+/* Calendar legend */
+.calendar-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  padding: 16px 24px;
+  border-top: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.legend-swatch {
+  width: 14px;
+  height: 14px;
+  border-radius: 4px;
+  display: inline-block;
+}
+
+.green-1-swatch { background: rgba(16, 185, 129, 0.2); border: 1px solid rgba(16, 185, 129, 0.3); }
+.green-2-swatch { background: rgba(16, 185, 129, 0.35); border: 1px solid rgba(16, 185, 129, 0.45); }
+.green-3-swatch { background: rgba(16, 185, 129, 0.55); border: 1px solid rgba(16, 185, 129, 0.65); }
+
+/* ── Admin Attendance Layout ─────────────────────────────────── */
+.admin-attendance-layout {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+.attendance-student-list {
+  padding: 0 !important;
+  overflow: hidden;
+  position: sticky;
+  top: 24px;
+}
+
+.attendance-search-bar {
+  position: relative;
+  padding: 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.attendance-search-bar .search-icon {
+  position: absolute;
+  left: 28px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+  font-size: 13px;
+  pointer-events: none;
+}
+
+.attendance-search-input {
+  padding-left: 36px !important;
+}
+
+.attendance-list-scroll {
+  max-height: 520px;
+  overflow-y: auto;
+}
+
+.attendance-list-scroll::-webkit-scrollbar {
+  width: 4px;
+}
+
+.attendance-list-scroll::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+}
+
+.attendance-student-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  cursor: pointer;
+  transition: var(--transition);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+}
+
+.attendance-student-item:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.attendance-student-item.selected {
+  background: rgba(59, 130, 246, 0.12);
+  border-left: 3px solid var(--accent);
+}
+
+.att-student-avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent), #8b5cf6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  font-weight: 700;
+  color: white;
+  flex-shrink: 0;
+}
+
+.att-student-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.att-student-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.att-student-meta {
+  display: flex;
+  gap: 4px;
+  margin-top: 4px;
+}
+
+.att-student-meta .badge {
+  font-size: 9px;
+  padding: 1px 6px;
+}
+
+.attendance-list-footer {
+  padding: 10px 16px;
+  border-top: 1px solid var(--border);
+  font-size: 11px;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+/* Admin student banner */
+.attendance-student-banner {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 20px 24px !important;
+}
+
+.att-banner-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent), #8b5cf6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  font-weight: 700;
+  color: white;
+  flex-shrink: 0;
+}
+
+/* ── Light Theme Overrides for Calendar ──────────────────────── */
+.light-theme .calendar-day-header {
+  background: rgba(0, 0, 0, 0.02);
+}
+
+.light-theme .calendar-day-cell {
+  border-right-color: rgba(0, 0, 0, 0.06);
+  border-bottom-color: rgba(0, 0, 0, 0.06);
+}
+
+.light-theme .calendar-day-cell:hover:not(.outside-month) {
+  background: rgba(0, 0, 0, 0.03);
+}
+
+.light-theme .calendar-day-cell.today {
+  background: rgba(59, 130, 246, 0.06);
+}
+
+.light-theme .calendar-day-cell.green-1 { background: rgba(16, 185, 129, 0.08); }
+.light-theme .calendar-day-cell.green-2 { background: rgba(16, 185, 129, 0.15); }
+.light-theme .calendar-day-cell.green-3 { background: rgba(16, 185, 129, 0.22); }
+
+.light-theme .meal-dot.inactive {
+  background: rgba(0, 0, 0, 0.06);
+  color: rgba(0, 0, 0, 0.2);
+}
+
+.light-theme .calendar-legend {
+  background: rgba(0, 0, 0, 0.02);
+}
+
+.light-theme .attendance-student-item:hover {
+  background: rgba(0, 0, 0, 0.03);
+}
+
+.light-theme .attendance-student-item.selected {
+  background: rgba(59, 130, 246, 0.08);
+}
+
+.light-theme .attendance-list-scroll::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.1);
+}
+
+.light-theme .summary-stat-row {
+  border-bottom-color: rgba(0, 0, 0, 0.06);
+}
+
+.light-theme .attendance-student-item {
+  border-bottom-color: rgba(0, 0, 0, 0.05);
+}
+
+/* ── Responsive ────────────────────────────────────────────── */
+@media (max-width: 1024px) {
+  .admin-attendance-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .attendance-student-list {
+    position: static;
+  }
+
+  .attendance-list-scroll {
+    max-height: 300px;
+  }
+}
+
+@media (max-width: 640px) {
+  .calendar-day-cell {
+    min-height: 60px;
+    padding: 4px;
+  }
+
+  .meal-dots-row {
+    gap: 2px;
+  }
+
+  .meal-dot {
+    width: 16px;
+    height: 14px;
+    font-size: 8px;
+  }
+
+  .summary-top-row {
+    flex-direction: column;
+    gap: 16px;
+    text-align: center;
+  }
+
+  .summary-meal-breakdown {
+    flex-direction: column;
+  }
+}
+
+/* ── Academic Year Selector ──────────────────────────────────── */
+.academic-year-selector {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-bottom: 20px;
+  padding: 16px 24px;
+  background: var(--bg-card);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+}
+
+.academic-year-label {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  letter-spacing: -0.3px;
+}
+
+/* ── Month Strip ─────────────────────────────────────────────── */
+.month-strip {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 20px;
+  padding: 12px 16px;
+  background: var(--bg-card);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+  overflow-x: auto;
+}
+
+.month-strip::-webkit-scrollbar {
+  height: 3px;
+}
+
+.month-strip::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+}
+
+.month-strip-btn {
+  flex: 1;
+  min-width: 48px;
+  padding: 10px 6px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  position: relative;
+}
+
+.month-strip-btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text-primary);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+.month-strip-btn.active {
+  background: rgba(59, 130, 246, 0.15);
+  color: var(--accent);
+  border-color: rgba(59, 130, 246, 0.3);
+  font-weight: 700;
+}
+
+.month-strip-btn.future {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.month-strip-btn.has-data .month-strip-name {
+  color: var(--success);
+}
+
+.month-strip-btn.active .month-strip-name {
+  color: var(--accent);
+}
+
+.month-strip-name {
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.month-strip-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--success);
+}
+
+.month-strip-btn.active .month-strip-dot {
+  background: var(--accent);
+}
+
+/* ── Yearly Summary Card Header ──────────────────────────────── */
+.yearly-summary-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.yearly-summary-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.yearly-summary-card {
+  border: 1px solid rgba(59, 130, 246, 0.15);
+  background: linear-gradient(135deg, var(--bg-card), rgba(59, 130, 246, 0.03));
+}
+
+/* ── Light Theme Overrides ───────────────────────────────────── */
+.light-theme .month-strip-btn:hover:not(:disabled) {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+.light-theme .month-strip-btn.active {
+  background: rgba(59, 130, 246, 0.1);
+}
+
+.light-theme .month-strip::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.1);
+}
+
+.light-theme .yearly-summary-card {
+  border-color: rgba(59, 130, 246, 0.12);
+  background: linear-gradient(135deg, var(--bg-card), rgba(59, 130, 246, 0.02));
+}
+
+/* ── Responsive for month strip ──────────────────────────────── */
+@media (max-width: 640px) {
+  .month-strip {
+    gap: 2px;
+    padding: 8px 10px;
+  }
+
+  .month-strip-btn {
+    min-width: 36px;
+    padding: 8px 4px;
+  }
+
+  .month-strip-name {
+    font-size: 10px;
+  }
+
+  .academic-year-selector {
+    gap: 8px;
+    padding: 12px 16px;
+  }
+
+  .academic-year-label {
+    font-size: 13px;
+  }
+}
