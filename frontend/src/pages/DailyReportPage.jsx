@@ -11,9 +11,11 @@ import {
   faChartSimple,
   faTableList,
   faFaceMeh,
+  faDownload,
 } from '@fortawesome/free-solid-svg-icons'
 import { getDailyReport } from '../api'
 import { formatMoney, toMoneyInt } from '../utils/money'
+import { generateDailyReportPDF } from '../utils/pdfGenerator'
 
 export default function DailyReportPage() {
   const today = new Date().toISOString().slice(0, 10)
@@ -61,6 +63,15 @@ export default function DailyReportPage() {
                 ? <><FontAwesomeIcon icon={faSpinner} spin style={{ marginRight: 8 }} />Loading...</>
                 : <><FontAwesomeIcon icon={faChartColumn} style={{ marginRight: 8 }} />Generate Report</>}
             </button>
+            {report && (
+              <button
+                className="btn btn-ghost btn-download-pdf"
+                onClick={() => generateDailyReportPDF(report, date)}
+              >
+                <FontAwesomeIcon icon={faDownload} style={{ marginRight: 8 }} />
+                Download PDF
+              </button>
+            )}
           </div>
         </div>
 

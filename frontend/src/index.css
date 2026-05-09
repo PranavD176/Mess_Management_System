@@ -1350,3 +1350,32 @@ tbody tr.row-danger  td { background: var(--danger-bg); }
     font-size: 13px;
   }
 }
+
+/* ── Download PDF Button ─────────────────────────────────────── */
+.btn-download-pdf {
+  border: 1px solid rgba(59, 130, 246, 0.3) !important;
+  color: var(--accent) !important;
+  background: rgba(59, 130, 246, 0.06) !important;
+  font-weight: 600 !important;
+  gap: 6px;
+  transition: all 0.25s ease !important;
+}
+
+.btn-download-pdf:hover {
+  background: rgba(59, 130, 246, 0.15) !important;
+  border-color: var(--accent) !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+}
+
+.btn-download-pdf:active {
+  transform: translateY(0);
+}
+
+.light-theme .btn-download-pdf {
+  background: rgba(59, 130, 246, 0.04) !important;
+}
+
+.light-theme .btn-download-pdf:hover {
+  background: rgba(59, 130, 246, 0.1) !important;
+}

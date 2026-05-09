@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { listStudents } from '../api'
 import { toMoneyInt } from '../utils/money'
+import { generateStudentListPDF } from '../utils/pdfGenerator'
 
 export default function StudentListPage() {
   const navigate = useNavigate()
@@ -45,12 +46,27 @@ export default function StudentListPage() {
             <h1 className="page-title">Students</h1>
             <p className="page-subtitle">Manage all registered students and their meal plans</p>
           </div>
-          <button className="btn btn-primary" onClick={() => navigate('/students/new')}>
-            <span>Register Student</span>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M12 5v14M5 12h14"/>
-            </svg>
-          </button>
+          <div style={{ display: 'flex', gap: 8 }}>
+            {students.length > 0 && (
+              <button
+                className="btn btn-ghost btn-download-pdf"
+                onClick={() => generateStudentListPDF(students)}
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+                  <polyline points="7 10 12 15 17 10"/>
+                  <line x1="12" y1="15" x2="12" y2="3"/>
+                </svg>
+                Download PDF
+              </button>
+            )}
+            <button className="btn btn-primary" onClick={() => navigate('/students/new')}>
+              <span>Register Student</span>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M12 5v14M5 12h14"/>
+              </svg>
+            </button>
+          </div>
         </div>
       </div>
 

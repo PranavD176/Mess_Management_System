@@ -12,9 +12,11 @@ import {
   faGraduationCap,
   faMagnifyingGlass,
   faArrowRight,
+  faDownload,
 } from '@fortawesome/free-solid-svg-icons'
 import { getMonthlyReport } from '../api'
 import { formatMoney, toMoneyInt } from '../utils/money'
+import { generateMonthlyReportPDF } from '../utils/pdfGenerator'
 
 export default function MonthlyReportPage() {
   const navigate = useNavigate()
@@ -83,6 +85,15 @@ export default function MonthlyReportPage() {
                 ? <><FontAwesomeIcon icon={faSpinner} spin style={{ marginRight: 8 }} />Loading...</>
                 : <><FontAwesomeIcon icon={faChartColumn} style={{ marginRight: 8 }} />Generate Report</>}
             </button>
+            {report && (
+              <button
+                className="btn btn-ghost btn-download-pdf"
+                onClick={() => generateMonthlyReportPDF(report, parseInt(month), parseInt(year))}
+              >
+                <FontAwesomeIcon icon={faDownload} style={{ marginRight: 8 }} />
+                Download PDF
+              </button>
+            )}
           </div>
         </div>
 

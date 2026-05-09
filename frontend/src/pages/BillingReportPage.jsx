@@ -8,9 +8,11 @@ import {
   faClipboardList,
   faBan,
   faArrowRight,
+  faDownload,
 } from '@fortawesome/free-solid-svg-icons'
 import { getBillingReport } from '../api'
 import { formatMoney, toMoneyInt } from '../utils/money'
+import { generateBillingReportPDF } from '../utils/pdfGenerator'
 
 export default function BillingReportPage() {
   const navigate = useNavigate()
@@ -69,8 +71,19 @@ export default function BillingReportPage() {
   return (
     <>
       <div className="page-header">
-        <h1 className="page-title"><FontAwesomeIcon icon={faFileInvoiceDollar} style={{ marginRight: 8 }} />Billing Report</h1>
-        <p className="page-subtitle">All students sorted by balance — highlights low and exhausted balances</p>
+        <div>
+          <h1 className="page-title"><FontAwesomeIcon icon={faFileInvoiceDollar} style={{ marginRight: 8 }} />Billing Report</h1>
+          <p className="page-subtitle">All students sorted by balance — highlights low and exhausted balances</p>
+        </div>
+        {report.length > 0 && (
+          <button
+            className="btn btn-ghost btn-download-pdf"
+            onClick={() => generateBillingReportPDF(report)}
+          >
+            <FontAwesomeIcon icon={faDownload} style={{ marginRight: 8 }} />
+            Download PDF
+          </button>
+        )}
       </div>
 
       <div className="page-body">

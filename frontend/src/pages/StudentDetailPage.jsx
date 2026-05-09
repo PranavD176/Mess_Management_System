@@ -19,6 +19,7 @@ import {
 } from '@fortawesome/free-solid-svg-icons'
 import { getStudentFull } from '../api'
 import { formatMoney, toMoneyInt } from '../utils/money'
+import { generateStudentReceiptPDF } from '../utils/pdfGenerator'
 
 const MEAL_ICONS = { breakfast: faCloudSun, lunch: faSun, dinner: faMoon }
 const TXN_COLOR  = { deduction: 'var(--danger)', installment: 'var(--success)', carry_forward: 'var(--accent)', adjustment: 'var(--warning)' }
@@ -95,6 +96,13 @@ export default function StudentDetailPage() {
                 Fee Receipt
               </a>
             )}
+            <button
+              className="btn btn-ghost btn-sm btn-download-pdf"
+              onClick={() => generateStudentReceiptPDF(student, plan, entries, transactions)}
+            >
+              <FontAwesomeIcon icon={faDownload} style={{ marginRight: 8 }} />
+              Download Receipt
+            </button>
             <button className="btn btn-primary btn-sm" onClick={() => navigate(`/students/${id}/plan`)}>
               {plan
                 ? <><FontAwesomeIcon icon={faRotate} style={{ marginRight: 8 }} />Renew Plan</>
