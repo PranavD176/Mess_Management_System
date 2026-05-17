@@ -34,6 +34,8 @@ export default function ScanPage() {
   const streamRef  = useRef(null)
   const rafRef     = useRef(null)
   const cooldownRef = useRef(false)
+  const lastScannedRef = useRef(null)      // tracks the last scanned QR data
+  const lastScannedTimerRef = useRef(null)  // timer to clear the last scanned data
 
   // ── Camera start/stop ────────────────────────────────────────
   const startCamera = async () => {
@@ -60,7 +62,10 @@ export default function ScanPage() {
     setCameraActive(false)
   }, [])
 
-  useEffect(() => () => stopCamera(), [stopCamera])
+  useEffect(() => () => {
+    stopCamera()
+    clearTimeout(lastScannedTimerRef.current)
+  }, [stopCamera])
 
   // ── jsQR scan loop ────────────────────────────────────────────
   useEffect(() => {
@@ -86,9 +91,22 @@ export default function ScanPage() {
           inversionAttempts: 'dontInvert',
         })
         if (code && code.data.trim()) {
+          const scannedData = code.data.trim()
+          // Skip if same QR code is still in front of the camera
+          if (lastScannedRef.current === scannedData) {
+            rafRef.current = requestAnimationFrame(tick)
+            return
+          }
           cooldownRef.current = true
-          doScan(code.data.trim())
-          setTimeout(() => { cooldownRef.current = false }, 3000)
+          lastScannedRef.current = scannedData
+          doScan(scannedData)
+          // Short processing cooldown — prevents rapid-fire scans of ANY code
+          setTimeout(() => { cooldownRef.current = false }, 2000)
+          // Longer cooldown for the SAME QR code — prevents "already scanned" error
+          clearTimeout(lastScannedTimerRef.current)
+          lastScannedTimerRef.current = setTimeout(() => {
+            lastScannedRef.current = null
+          }, 10000)
         }
       }
       rafRef.current = requestAnimationFrame(tick)
